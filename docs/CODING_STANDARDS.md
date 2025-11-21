@@ -408,9 +408,7 @@ cppcheck --addon=misra --std=c11 \
 - [ ] Unit tests written
 - [ ] Code coverage >80%
 
-## Contact
+## Document Information
 
-**Author:** A. R. Ansari  
-**Email:** ansarirahim1@gmail.com  
 **Date:** November 2024
 

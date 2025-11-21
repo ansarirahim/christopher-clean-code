@@ -321,9 +321,7 @@ if (err != DA7281_OK) {
    - Standby mode optimization
    - Dynamic power scaling
 
-## Contact
+## Document Information
 
-**Author:** A. R. Ansari  
-**Email:** ansarirahim1@gmail.com  
 **Date:** November 2024
 

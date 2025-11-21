@@ -378,9 +378,7 @@ void test_continuous_operation(void)
 - Inspect device state
 - Step through HAL functions
 
-## Contact
+## Document Information
 
-**Author:** A. R. Ansari  
-**Email:** ansarirahim1@gmail.com  
 **Date:** November 2024
 

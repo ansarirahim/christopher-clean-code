@@ -282,13 +282,6 @@ doxygen Doxyfile
 
 View documentation: `docs/html/index.html`
 
-## Contact
-
-**A. R. Ansari**
-- Email: ansarirahim1@gmail.com
-- GitHub: [@ansarirahim](https://github.com/ansarirahim)
-- LinkedIn: [A. R. Ansari](https://linkedin.com/in/ansarirahim)
-
 ## Status
 
 🚧 **In Development**

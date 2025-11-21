@@ -112,12 +112,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Contact
+## License
 
-**Author:** A. R. Ansari  
-**Email:** ansarirahim1@gmail.com  
-**Project:** DA7281 HAL for Qorvo DWM3001C  
-**License:** MIT License
+MIT License
 
 ---
 

@@ -3,9 +3,12 @@
  * @brief DA7281 I2C Communication Layer
  * @author A. R. Ansari
  * @date 2024-11-21
- * 
+ *
  * Thread-safe I2C communication functions for DA7281 using
  * Qorvo SDK TWI driver with FreeRTOS mutex protection.
+ *
+ * NOTE: Nordic nrf_drv_twi API expects 7-bit I2C addresses (0x48..0x4B).
+ *       The R/W bit is handled internally by the driver. Do not left-shift addresses.
  */
 
 #include "da7281.h"

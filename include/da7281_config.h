@@ -41,14 +41,29 @@ extern "C" {
 #define DA7281_POWER_ON_DELAY_MS        (2U)
 #endif
 
-/** Default I2C address (ADDR pin to GND) */
-#ifndef DA7281_DEFAULT_I2C_ADDR
-#define DA7281_DEFAULT_I2C_ADDR         (0x4AU)
+/** I2C address: ADDR_1=GND, ADDR_0=GND (datasheet Table 16, p58) */
+#ifndef DA7281_I2C_ADDR_0x48
+#define DA7281_I2C_ADDR_0x48            (0x48U)
 #endif
 
-/** Alternate I2C address (ADDR pin to VDD) */
-#ifndef DA7281_ALTERNATE_I2C_ADDR
-#define DA7281_ALTERNATE_I2C_ADDR       (0x4BU)
+/** I2C address: ADDR_1=GND, ADDR_0=VDDIO (datasheet Table 16, p58) */
+#ifndef DA7281_I2C_ADDR_0x49
+#define DA7281_I2C_ADDR_0x49            (0x49U)
+#endif
+
+/** I2C address: ADDR_1=VDDIO, ADDR_0=GND (datasheet Table 16, p58) */
+#ifndef DA7281_I2C_ADDR_0x4A
+#define DA7281_I2C_ADDR_0x4A            (0x4AU)
+#endif
+
+/** I2C address: ADDR_1=VDDIO, ADDR_0=VDDIO (datasheet Table 16, p58) */
+#ifndef DA7281_I2C_ADDR_0x4B
+#define DA7281_I2C_ADDR_0x4B            (0x4BU)
+#endif
+
+/** Default I2C address (for backward compatibility) */
+#ifndef DA7281_DEFAULT_I2C_ADDR
+#define DA7281_DEFAULT_I2C_ADDR         DA7281_I2C_ADDR_0x4A
 #endif
 
 /** Enable FreeRTOS mutex protection (0=disabled, 1=enabled) */

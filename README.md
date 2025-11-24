@@ -34,13 +34,15 @@ Professional Hardware Abstraction Layer for Dialog DA7281 haptic driver on Qorvo
 
 ### Supported Configurations
 
-**4 Devices on 2 I2C Buses:**
-- TWI0: 2 devices (addresses 0x4A, 0x4B)
-- TWI1: 2 devices (addresses 0x4A, 0x4B)
+**Up to 4 Devices on Single I2C Bus:**
+- Single TWI bus: 4 devices (addresses 0x48, 0x49, 0x4A, 0x4B)
+- Or use multiple TWI buses for more devices
 
-**I2C Address Selection:**
-- 0x4A: ADDR pin tied to GND
-- 0x4B: ADDR pin tied to VDD
+**I2C Address Selection (Datasheet Table 16, p58):**
+- 0x48: ADDR_1=GND, ADDR_0=GND
+- 0x49: ADDR_1=GND, ADDR_0=VDDIO
+- 0x4A: ADDR_1=VDDIO, ADDR_0=GND
+- 0x4B: ADDR_1=VDDIO, ADDR_0=VDDIO
 
 ### LRA Specifications
 - Resonant Frequency: 170 Hz
@@ -169,7 +171,7 @@ cp -r src/ your_project/components/da7281/
 // Device configuration
 da7281_device_t haptic_device = {
     .twi_instance = 0,           // TWI0
-    .i2c_address = 0x4A,         // ADDR pin to GND
+    .i2c_address = 0x48,         // ADDR_1=GND, ADDR_0=GND
     .gpio_enable_pin = 12,       // GPIO pin for power control
 };
 
@@ -221,12 +223,12 @@ void haptics_example(void)
 ### Multi-Device Example
 
 ```c
-// Configure 4 devices (2 on TWI0, 2 on TWI1)
+// Configure 4 devices on single I2C bus (all 4 addresses)
 da7281_device_t haptic_devices[4] = {
-    {.twi_instance = 0, .i2c_address = 0x4A, .gpio_enable_pin = 12},
-    {.twi_instance = 0, .i2c_address = 0x4B, .gpio_enable_pin = 13},
-    {.twi_instance = 1, .i2c_address = 0x4A, .gpio_enable_pin = 14},
-    {.twi_instance = 1, .i2c_address = 0x4B, .gpio_enable_pin = 15}
+    {.twi_instance = 0, .i2c_address = 0x48, .gpio_enable_pin = 12},  // ADDR_1=GND, ADDR_0=GND
+    {.twi_instance = 0, .i2c_address = 0x49, .gpio_enable_pin = 13},  // ADDR_1=GND, ADDR_0=VDDIO
+    {.twi_instance = 0, .i2c_address = 0x4A, .gpio_enable_pin = 14},  // ADDR_1=VDDIO, ADDR_0=GND
+    {.twi_instance = 0, .i2c_address = 0x4B, .gpio_enable_pin = 15}   // ADDR_1=VDDIO, ADDR_0=VDDIO
 };
 
 void multi_device_example(void)

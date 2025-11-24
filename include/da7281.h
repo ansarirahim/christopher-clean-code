@@ -92,7 +92,7 @@ typedef struct {
  */
 typedef struct {
     uint8_t twi_instance;           /**< TWI/I2C instance (0 or 1) */
-    uint8_t i2c_address;            /**< I2C address (0x4A or 0x4B) */
+    uint8_t i2c_address;            /**< I2C address (0x48, 0x49, 0x4A, or 0x4B) */
     uint8_t gpio_enable_pin;        /**< GPIO pin for power enable */
     bool initialized;               /**< Initialization status */
     bool powered_on;                /**< Power state */

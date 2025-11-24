@@ -24,7 +24,7 @@
 /** Device configuration for first DA7281 */
 static da7281_device_t s_haptic_device_1 = {
     .twi_instance = 0,           /* TWI0 */
-    .i2c_address = 0x4A,         /* ADDR pin to GND */
+    .i2c_address = 0x4A,         /* ADDR_1=VDDIO, ADDR_0=GND */
     .gpio_enable_pin = 12,       /* GPIO pin for power control */
     .initialized = false,
     .powered_on = false,

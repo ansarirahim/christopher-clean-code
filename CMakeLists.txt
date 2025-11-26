@@ -1,7 +1,29 @@
 cmake_minimum_required(VERSION 3.20)
 
+# ======================================================================
+# Auto-select ARM toolchain if not provided
+# ======================================================================
+
+if (NOT CMAKE_C_COMPILER)
+    set(ARM_TOOLCHAIN arm-none-eabi-gcc)
+    set(ARM_ASM_TOOLCHAIN arm-none-eabi-gcc)
+
+    message(STATUS "Using default ARM compiler: ${ARM_TOOLCHAIN}")
+
+    # Tell CMake we are cross-compiling
+    set(CMAKE_SYSTEM_NAME Generic)
+    set(CMAKE_SYSTEM_PROCESSOR ARM)
+
+    # Direct compiler selection
+    set(CMAKE_C_COMPILER   ${ARM_TOOLCHAIN})
+    set(CMAKE_ASM_COMPILER ${ARM_ASM_TOOLCHAIN})
+
+    # Needed to avoid running test binaries
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+endif()
+
 # Project definition
-project(da7281_dwm3001c_hal 
+project(da7281_dwm3001c_hal
         VERSION 1.0.0
         LANGUAGES C ASM)
 
@@ -50,7 +72,7 @@ set(QORVO_SDK_PATH "${CMAKE_SOURCE_DIR}/../qorvo_sdk" CACHE PATH "Path to Qorvo 
 
 if(EXISTS "${QORVO_SDK_PATH}")
     message(STATUS "Qorvo SDK found at: ${QORVO_SDK_PATH}")
-    
+
     # SDK include directories
     set(SDK_INCLUDES
         ${QORVO_SDK_PATH}/components/drivers_nrf/twi_master
@@ -113,12 +135,12 @@ if(ENABLE_EXAMPLES AND EXISTS "${QORVO_SDK_PATH}")
     add_executable(haptics_demo
         examples/haptics_demo.c
     )
-    
+
     target_link_libraries(haptics_demo
         PRIVATE
             da7281_hal
     )
-    
+
     target_include_directories(haptics_demo
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/config
@@ -132,10 +154,10 @@ endif()
 
 if(ENABLE_TESTS)
     enable_testing()
-    
+
     # Unity test framework (would need to be downloaded)
     set(UNITY_PATH "${CMAKE_SOURCE_DIR}/external/unity" CACHE PATH "Path to Unity test framework")
-    
+
     if(EXISTS "${UNITY_PATH}")
         add_subdirectory(tests/unit)
     else()
@@ -150,7 +172,7 @@ endif()
 if(ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-    
+
     add_custom_target(coverage
         COMMAND lcov --capture --directory . --output-file coverage.info
         COMMAND lcov --remove coverage.info '/usr/*' --output-file coverage.info
@@ -185,4 +207,3 @@ message(STATUS "  Enable tests:   ${ENABLE_TESTS}")
 message(STATUS "  Enable coverage: ${ENABLE_COVERAGE}")
 message(STATUS "  Enable examples: ${ENABLE_EXAMPLES}")
 message(STATUS "")
-

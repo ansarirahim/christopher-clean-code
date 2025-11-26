@@ -90,6 +90,7 @@ add_library(da7281_hal STATIC ${DA7281_SOURCES})
 target_include_directories(da7281_hal
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/config
     PRIVATE
         ${SDK_INCLUDES}
 )
@@ -120,6 +121,7 @@ if(ENABLE_EXAMPLES AND EXISTS "${QORVO_SDK_PATH}")
     
     target_include_directories(haptics_demo
         PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/config
             ${SDK_INCLUDES}
     )
 endif()

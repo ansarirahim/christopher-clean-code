@@ -1,34 +1,25 @@
 # DA7281 Haptic Driver HAL for DWM3001C
 
-Professional Hardware Abstraction Layer for Dialog DA7281 haptic driver on Qorvo DWM3001C (nRF52833) with FreeRTOS.
+Hardware Abstraction Layer for Dialog DA7281 haptic driver on Qorvo DWM3001C (nRF52833) with FreeRTOS.
 
 ## Project Information
 
 - **Platform:** Qorvo DWM3001C (nRF52833 SoC)
-- **SDK:** Qorvo DWM3001CDK SDK v1.1.1
+- **SDK:** Qorvo DWM3001CDK SDK v1.1.1 (based on Nordic SDK 17.1.0)
 - **RTOS:** FreeRTOS
 - **Device:** Dialog DA7281 Haptic Driver IC
 - **Date:** November 2024
 
 ## Features
 
-### Core Functionality
-- ✅ Multi-device support (up to 4 DA7281 devices on 2 I2C buses)
-- ✅ Thread-safe I2C operations with FreeRTOS mutex protection
-- ✅ Power control with proper 1.5ms sequencing per datasheet
-- ✅ LRA configuration (170Hz resonant frequency, 6.75Ω impedance)
-- ✅ Multiple operation modes: DRO, PWM, RTWM, ETWM
-- ✅ Override mode for direct amplitude control
-- ✅ Self-test functionality with result validation
-- ✅ Comprehensive error handling and logging
-
-### Code Quality
-- ✅ MISRA-C compliant coding standards
-- ✅ Complete unit test coverage
-- ✅ CI/CD pipeline with automated testing
-- ✅ Doxygen documentation
-- ✅ Static analysis integration
-- ✅ Code coverage reporting
+- Multi-device support (up to 4 DA7281 devices per I2C bus)
+- Thread-safe I2C operations with FreeRTOS mutex protection
+- Power control with proper 1.5ms sequencing per datasheet
+- LRA configuration (170Hz resonant frequency, 6.75Ω impedance)
+- Multiple operation modes: DRO, PWM, RTWM, ETWM
+- Override mode for direct amplitude control
+- Self-test functionality with result validation
+- Comprehensive error handling and logging
 
 ## Hardware Configuration
 
@@ -61,102 +52,71 @@ da7281-dwm3001c-hal/
 │   └── da7281_config.h       # Configuration options
 ├── src/
 │   ├── da7281.c              # Core HAL implementation
-│   ├── da7281_i2c.c          # I2C wrapper
-│   ├── da7281_power.c        # Power control
-│   └── da7281_lra.c          # LRA configuration
+│   └── da7281_i2c.c          # I2C wrapper with FreeRTOS mutex
+├── config/
+│   └── sdk_config.h          # Nordic SDK configuration
 ├── examples/
 │   └── haptics_demo.c        # Usage example
-├── tests/
-│   ├── unit/                 # Unit tests
-│   └── integration/          # Integration tests
-├── docs/
-│   ├── ARCHITECTURE.md       # Design documentation
-│   ├── API.md                # API reference
-│   └── Doxyfile              # Doxygen configuration
-├── .github/
-│   └── workflows/
-│       └── ci.yml            # CI/CD pipeline
-└── CMakeLists.txt            # Build configuration
+└── docs/
+    └── ARCHITECTURE.md       # Design documentation
 ```
 
-## Quick Start
+## Integration into Qorvo SDK Project
 
-### Prerequisites
+### Step 1: Copy Files to Your Project
 
-#### Hardware
-- Qorvo DWM3001CDK development board (nRF52833)
-- DA7281 haptic driver IC(s)
-- LRA actuator(s) (170Hz, 6.75Ω recommended)
-
-#### Software
-- **Qorvo DWM3001CDK SDK v1.1.1** or later
-- **ARM GCC Toolchain** (10.3-2021.10 or later)
-- **CMake** 3.20 or later
-- **Ninja** build system (optional but recommended)
-- **Git** for version control
-
-### Installation
-
-#### 1. Install ARM GCC Toolchain
 ```bash
-# Ubuntu/Debian
-sudo apt-get install gcc-arm-none-eabi
+# Copy source files
+cp src/da7281.c your_project/src/
+cp src/da7281_i2c.c your_project/src/
 
-# macOS
-brew install gcc-arm-embedded
+# Copy headers
+cp include/*.h your_project/include/
 
-# Windows - Download from:
-# https://developer.arm.com/downloads/-/gnu-rm
+# Copy SDK config (merge with your existing sdk_config.h)
+cp config/sdk_config.h your_project/config/
 ```
 
-#### 2. Install CMake and Ninja
-```bash
-# Ubuntu/Debian
-sudo apt-get install cmake ninja-build
+### Step 2: Add to Your Build System
 
-# macOS
-brew install cmake ninja
+**If using Makefile:**
+```makefile
+# Add to your source files
+SRC_FILES += \
+  src/da7281.c \
+  src/da7281_i2c.c
 
-# Windows - Download from:
-# https://cmake.org/download/
+# Add to include paths
+INC_FOLDERS += \
+  include/
 ```
 
-#### 3. Download Qorvo SDK
-Download from Qorvo website and extract to a known location (e.g., `~/qorvo_sdk`)
+**If using CMake:**
+```cmake
+# Add source files
+target_sources(your_target PRIVATE
+  src/da7281.c
+  src/da7281_i2c.c
+)
 
-### Build Instructions
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/da7281-dwm3001c-hal.git
-cd da7281-dwm3001c-hal
-
-# Create build directory
-mkdir build && cd build
-
-# Configure (set SDK path)
-cmake .. -G "Ninja" \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DQORVO_SDK_PATH=/path/to/qorvo_sdk \
-  -DENABLE_EXAMPLES=ON
-
-# Build
-ninja
-
-# Run tests (if enabled)
-ctest --output-on-failure
+# Add include directories
+target_include_directories(your_target PRIVATE
+  include/
+)
 ```
 
-### Integration into Existing Project
+### Step 3: Configure SDK Settings
 
-```bash
-# Copy HAL files to your project
-cp -r include/ your_project/components/da7281/
-cp -r src/ your_project/components/da7281/
+Ensure your `sdk_config.h` has these settings enabled:
 
-# Add to your Makefile or CMakeLists.txt:
-# - Include directories: da7281/include/
-# - Source files: da7281/src/*.c
+```c
+// Enable TWI/I2C
+#define TWI0_ENABLED 1
+#define TWI1_ENABLED 1  // If using second I2C bus
+
+// FreeRTOS integration
+#define NRFX_TWI_ENABLED 1
+#define TWI_DEFAULT_CONFIG_FREQUENCY NRF_TWI_FREQ_400K
 ```
 
 ## Usage Examples
@@ -255,39 +215,51 @@ void multi_device_example(void)
 
 See `examples/haptics_demo.c` for a complete working example.
 
-## Testing
+## API Reference
 
-### Unit Tests
-```bash
-cd build
-ninja test
-```
+### Initialization Functions
+- `da7281_init()` - Initialize DA7281 device
+- `da7281_deinit()` - Deinitialize device
+- `da7281_power_on()` - Power on device (1.5ms delay per datasheet)
+- `da7281_power_off()` - Power off device
 
-### Code Coverage
-```bash
-cmake .. -DENABLE_COVERAGE=ON
-ninja coverage
-```
+### Configuration Functions
+- `da7281_configure_lra()` - Configure LRA parameters
+- `da7281_set_operation_mode()` - Set operation mode (DRO/PWM/RTWM/ETWM)
+- `da7281_set_amplifier_enable()` - Enable/disable amplifier
 
-### Static Analysis
-```bash
-ninja static-analysis
-```
+### Control Functions
+- `da7281_set_override_amplitude()` - Set amplitude in override mode (0-255)
+- `da7281_trigger_effect()` - Trigger waveform effect
+- `da7281_run_self_test()` - Run device self-test
 
-## Documentation
+### Status Functions
+- `da7281_get_status()` - Read device status register
+- `da7281_check_fault()` - Check for fault conditions
 
-Generate API documentation:
-```bash
-cd docs
-doxygen Doxyfile
-```
+See `include/da7281.h` for complete API documentation.
 
-View documentation: `docs/html/index.html`
+## Troubleshooting
 
-## Status
+**I2C Communication Fails:**
+- Check I2C address matches hardware configuration (ADDR_0, ADDR_1 pins)
+- Verify TWI instance is initialized in your project
+- Check pull-up resistors on SDA/SCL lines
 
-🚧 **In Development**
-- Start Date: November 20, 2024
-- Milestone: November 26, 2024
-- Target Completion: December 1, 2024
+**Device Not Responding:**
+- Verify power sequencing (1.5ms delay after enable)
+- Check GPIO enable pin configuration
+- Verify VDD and VDDIO supply voltages
 
+**Haptic Effect Not Working:**
+- Ensure amplifier is enabled
+- Check LRA connection and specifications
+- Verify operation mode is set correctly
+
+## License
+
+See LICENSE file for details.
+
+## Contact
+
+For issues and questions, please open an issue on GitHub.

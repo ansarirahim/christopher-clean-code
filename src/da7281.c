@@ -84,7 +84,7 @@ da7281_error_t da7281_power_off(da7281_device_t *device)
  * @return DA7281_ERROR_NULL_POINTER if device is NULL
  * @return DA7281_ERROR_ALREADY_INITIALIZED if already initialized
  * @return DA7281_ERROR_NOT_INITIALIZED if not powered on
- * @return DA7281_ERROR_CHIP_ID_MISMATCH if chip ID != 0xBA
+ * @return DA7281_ERROR_CHIP_ID_MISMATCH if chip ID != 0x01
  * @return DA7281_ERROR_I2C_READ/WRITE on communication failure
  */
 da7281_error_t da7281_init(da7281_device_t *device)
@@ -258,11 +258,19 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 1. Configure LRA Period ===== */
     /* Calculate period in seconds, then convert to register value */
+    /* DA7281 Datasheet Section 9.4.5: LRA_PER = T / 1.024μs */
     float period_seconds = 1.0F / (float)config->resonant_freq_hz;
-    uint16_t lra_per = (uint16_t)(period_seconds / DA7281_LRA_PER_TIME_SCALE);
+    float lra_per_float = period_seconds / DA7281_LRA_PER_TIME_SCALE;
 
-    DA7281_LOG_DEBUG("LRA period calculation: f=%uHz, T=%.6fs, LRA_PER=0x%04X",
-                     config->resonant_freq_hz, period_seconds, lra_per);
+    /* Round to nearest integer and clamp to valid 16-bit range (1-65535) */
+    uint16_t lra_per = (uint16_t)roundf(lra_per_float);
+    if (lra_per == 0) {
+        lra_per = 1;  /* Minimum valid value */
+        DA7281_LOG_WARNING("LRA_PER calculated as 0, clamped to 1");
+    }
+
+    DA7281_LOG_DEBUG("LRA period calculation: f=%uHz, T=%.6fs, LRA_PER=0x%04X (rounded from %.2f)",
+                     config->resonant_freq_hz, period_seconds, lra_per, lra_per_float);
 
     /* Write LRA period (16-bit register, high byte first) */
     err = da7281_write_register(device, DA7281_REG_LRA_PER_H,
@@ -284,10 +292,18 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 2. Configure V2I Factor ===== */
     /* V2I factor converts voltage to current based on actuator impedance */
-    uint16_t v2i_factor = (uint16_t)(config->impedance_ohm * DA7281_V2I_FACTOR_SCALE);
+    /* DA7281 Datasheet Section 9.4.6: V2I_FACTOR = Z × 1.5 */
+    float v2i_float = config->impedance_ohm * DA7281_V2I_FACTOR_SCALE;
 
-    DA7281_LOG_DEBUG("V2I calculation: Z=%.2fΩ, V2I=0x%04X",
-                     config->impedance_ohm, v2i_factor);
+    /* Round to nearest integer and clamp to valid 16-bit range (1-65535) */
+    uint16_t v2i_factor = (uint16_t)roundf(v2i_float);
+    if (v2i_factor == 0) {
+        v2i_factor = 1;  /* Minimum valid value */
+        DA7281_LOG_WARNING("V2I_FACTOR calculated as 0, clamped to 1");
+    }
+
+    DA7281_LOG_DEBUG("V2I calculation: Z=%.2fΩ, V2I=0x%04X (rounded from %.2f)",
+                     config->impedance_ohm, v2i_factor, v2i_float);
 
     /* Write V2I factor (16-bit register, high byte first) */
     err = da7281_write_register(device, DA7281_REG_V2I_FACTOR_H,
@@ -397,10 +413,14 @@ da7281_error_t da7281_set_operation_mode(da7281_device_t *device,
     DA7281_LOG_DEBUG("Changing operation mode from %s to %s",
                      mode_names[device->mode], mode_names[mode]);
 
+    /* DA7281 Datasheet Table 21, Page 56: OP_MODE is bits [2:0] of TOP_CFG1 */
+    /* Shift mode value to correct bit position before writing */
+    uint8_t mode_value = ((uint8_t)mode << DA7281_TOP_CFG1_OP_MODE_SHIFT) & DA7281_TOP_CFG1_OP_MODE_MASK;
+
     da7281_error_t err = da7281_modify_register(device,
                                                   DA7281_REG_TOP_CFG1,
                                                   DA7281_TOP_CFG1_OP_MODE_MASK,
-                                                  (uint8_t)mode);
+                                                  mode_value);
     if (err != DA7281_OK) {
         DA7281_LOG_ERROR("Failed to set operation mode to %s", mode_names[mode]);
         return err;
@@ -410,7 +430,7 @@ da7281_error_t da7281_set_operation_mode(da7281_device_t *device,
     uint8_t top_cfg1 = 0;
     err = da7281_read_register(device, DA7281_REG_TOP_CFG1, &top_cfg1);
     if (err == DA7281_OK) {
-        uint8_t actual_mode = top_cfg1 & DA7281_TOP_CFG1_OP_MODE_MASK;
+        uint8_t actual_mode = (top_cfg1 & DA7281_TOP_CFG1_OP_MODE_MASK) >> DA7281_TOP_CFG1_OP_MODE_SHIFT;
         if (actual_mode != (uint8_t)mode) {
             DA7281_LOG_WARNING("Operation mode verification failed: expected %d, got %d",
                                mode, actual_mode);
@@ -440,7 +460,7 @@ da7281_error_t da7281_get_operation_mode(da7281_device_t *device,
         return err;
     }
 
-    *mode = (da7281_operation_mode_t)(reg_value & DA7281_TOP_CFG1_OP_MODE_MASK);
+    *mode = (da7281_operation_mode_t)((reg_value & DA7281_TOP_CFG1_OP_MODE_MASK) >> DA7281_TOP_CFG1_OP_MODE_SHIFT);
 
     return DA7281_OK;
 }

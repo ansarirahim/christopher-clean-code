@@ -241,6 +241,34 @@ da7281_error_t da7281_read_chip_revision(da7281_device_t *device,
                                           uint8_t *revision);
 
 /* ========================================================================
+ * Function Prototypes - I2C Configuration
+ * ======================================================================== */
+
+/**
+ * @brief Configure TWI/I2C pins for a specific instance
+ *
+ * This function MUST be called before da7281_init() to specify the hardware
+ * pins for SCL and SDA. Pin assignments are board-specific.
+ *
+ * Example for custom DWM3001C board:
+ *   da7281_i2c_configure_pins(0, 4, 5);  // TWI0: SCL=P0.4, SDA=P0.5
+ *
+ * Example for Nordic DK:
+ *   da7281_i2c_configure_pins(0, 27, 26);  // TWI0: SCL=P0.27, SDA=P0.26
+ *
+ * @param[in] instance TWI instance number (0 or 1)
+ * @param[in] scl_pin GPIO pin number for SCL (0-31)
+ * @param[in] sda_pin GPIO pin number for SDA (0-31)
+ * @return DA7281_OK on success, error code otherwise
+ *
+ * @note Must be called BEFORE any I2C operations
+ * @note Consult your hardware schematic for correct pin numbers
+ */
+da7281_error_t da7281_i2c_configure_pins(uint8_t instance,
+                                          uint8_t scl_pin,
+                                          uint8_t sda_pin);
+
+/* ========================================================================
  * Function Prototypes - Low-Level I2C (Internal Use)
  * ======================================================================== */
 

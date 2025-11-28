@@ -19,7 +19,7 @@ extern "C" {
  * Register Addresses (8-bit)
  * ======================================================================== */
 
-/** Chip ID register (Read-only) - Expected value: 0xBA */
+/** Chip ID register (Read-only) - Expected value: 0x01 */
 #define DA7281_REG_CHIP_ID              (0x00U)
 
 /** Chip revision register (Read-only) */
@@ -210,8 +210,8 @@ extern "C" {
 /* V2I_FACTOR - Scaling constant */
 #define DA7281_V2I_FACTOR_SCALE         (1.5F)      /**< Multiplier */
 
-/* Expected CHIP_ID value */
-#define DA7281_CHIP_ID_VALUE            (0xBAU)
+/* Expected CHIP_ID value (DA7281 Datasheet Rev 4.0, Table 20, Page 54) */
+#define DA7281_CHIP_ID_VALUE            (0x01U)
 
 /* Self-test result bits */
 #define DA7281_SELFTEST_RESULT_PASS     (0x01U)

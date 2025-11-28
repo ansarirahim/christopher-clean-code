@@ -22,8 +22,8 @@
  * Private Variables
  * ======================================================================== */
 
-/** FreeRTOS mutex for thread-safe I2C access */
-static SemaphoreHandle_t s_i2c_mutex = NULL;
+/** FreeRTOS mutex for thread-safe I2C access (one per TWI bus) */
+static SemaphoreHandle_t s_i2c_mutex[2] = {NULL, NULL};
 
 /** TWI instance handles */
 static nrf_drv_twi_t s_twi_instances[2] = {
@@ -34,11 +34,21 @@ static nrf_drv_twi_t s_twi_instances[2] = {
 /** TWI initialization status */
 static bool s_twi_initialized[2] = {false, false};
 
+/** TWI pin configuration (SCL, SDA) - set by application before first use */
+static struct {
+    uint8_t scl;
+    uint8_t sda;
+    bool configured;
+} s_twi_pins[2] = {
+    {0, 0, false},  /* TWI0 - not configured */
+    {0, 0, false}   /* TWI1 - not configured */
+};
+
 /* ========================================================================
  * Private Function Prototypes
  * ======================================================================== */
 
-static da7281_error_t da7281_i2c_init_mutex(void);
+static da7281_error_t da7281_i2c_init_mutex(uint8_t instance);
 static da7281_error_t da7281_i2c_init_twi(uint8_t instance);
 
 /* ========================================================================
@@ -46,23 +56,28 @@ static da7281_error_t da7281_i2c_init_twi(uint8_t instance);
  * ======================================================================== */
 
 /**
- * @brief Initialize I2C mutex for thread-safe operation
+ * @brief Initialize I2C mutex for thread-safe operation (per TWI bus)
  *
  * Creates a FreeRTOS mutex to protect I2C bus access from concurrent threads.
- * This ensures only one thread can communicate with DA7281 devices at a time.
+ * Each TWI bus has its own mutex to allow parallel access to different buses.
  *
+ * @param instance TWI instance number (0 or 1)
  * @return DA7281_OK on success
  * @return DA7281_ERROR_MUTEX_FAILED if mutex creation fails
  */
-static da7281_error_t da7281_i2c_init_mutex(void)
+static da7281_error_t da7281_i2c_init_mutex(uint8_t instance)
 {
-    if (s_i2c_mutex == NULL) {
-        s_i2c_mutex = xSemaphoreCreateMutex();
-        if (s_i2c_mutex == NULL) {
-            DA7281_LOG_ERROR("Failed to create I2C mutex - insufficient heap memory");
+    if (instance >= 2) {
+        return DA7281_ERROR_INVALID_PARAM;
+    }
+
+    if (s_i2c_mutex[instance] == NULL) {
+        s_i2c_mutex[instance] = xSemaphoreCreateMutex();
+        if (s_i2c_mutex[instance] == NULL) {
+            DA7281_LOG_ERROR("Failed to create I2C mutex for TWI%d - insufficient heap memory", instance);
             return DA7281_ERROR_MUTEX_FAILED;
         }
-        DA7281_LOG_INFO("I2C mutex created successfully");
+        DA7281_LOG_INFO("I2C mutex created successfully for TWI%d", instance);
     }
     return DA7281_OK;
 }
@@ -74,15 +89,16 @@ static da7281_error_t da7281_i2c_init_mutex(void)
  * Supports TWI0 and TWI1 for multi-device configurations.
  *
  * Configuration:
- * - TWI0: SCL=P0.27, SDA=P0.26
- * - TWI1: SCL=P0.29, SDA=P0.28
+ * - Pins: Must be configured via da7281_i2c_configure_pins() before first use
  * - Frequency: 400 kHz (Fast Mode)
  * - Interrupt priority: High
  *
  * @param instance TWI instance number (0 or 1)
  * @return DA7281_OK on success
- * @return DA7281_ERROR_INVALID_PARAM if instance >= 2
+ * @return DA7281_ERROR_INVALID_PARAM if instance >= 2 or pins not configured
  * @return DA7281_ERROR_I2C_WRITE if TWI initialization fails
+ *
+ * @note Call da7281_i2c_configure_pins() before using this function
  */
 static da7281_error_t da7281_i2c_init_twi(uint8_t instance)
 {
@@ -96,10 +112,17 @@ static da7281_error_t da7281_i2c_init_twi(uint8_t instance)
         return DA7281_OK;  /* Already initialized */
     }
 
-    /* TWI configuration */
+    /* Check if pins are configured */
+    if (!s_twi_pins[instance].configured) {
+        DA7281_LOG_ERROR("TWI%d pins not configured - call da7281_i2c_configure_pins() first", instance);
+        DA7281_LOG_ERROR("Application must specify SCL/SDA pins for the target hardware");
+        return DA7281_ERROR_INVALID_PARAM;
+    }
+
+    /* TWI configuration with application-specified pins */
     const nrf_drv_twi_config_t twi_config = {
-        .scl = (instance == 0) ? 27 : 29,  /* Default SCL pins */
-        .sda = (instance == 0) ? 26 : 28,  /* Default SDA pins */
+        .scl = s_twi_pins[instance].scl,
+        .sda = s_twi_pins[instance].sda,
         .frequency = NRF_DRV_TWI_FREQ_400K,
         .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
         .clear_bus_init = false
@@ -129,6 +152,49 @@ static da7281_error_t da7281_i2c_init_twi(uint8_t instance)
  * ======================================================================== */
 
 /**
+ * @brief Configure TWI pins for a specific instance
+ *
+ * This function MUST be called before any I2C operations to specify the
+ * hardware pins for SCL and SDA. Pin assignments are hardware-specific
+ * and depend on the target board design.
+ *
+ * Example for DWM3001C custom board:
+ *   da7281_i2c_configure_pins(0, 4, 5);  // TWI0: SCL=P0.4, SDA=P0.5
+ *
+ * Example for Nordic DK:
+ *   da7281_i2c_configure_pins(0, 27, 26);  // TWI0: SCL=P0.27, SDA=P0.26
+ *
+ * @param instance TWI instance number (0 or 1)
+ * @param scl_pin GPIO pin number for SCL (0-31)
+ * @param sda_pin GPIO pin number for SDA (0-31)
+ * @return DA7281_OK on success
+ * @return DA7281_ERROR_INVALID_PARAM if instance >= 2
+ *
+ * @note This function must be called BEFORE da7281_init() or any I2C operations
+ * @note Pins are board-specific - consult your hardware schematic
+ */
+da7281_error_t da7281_i2c_configure_pins(uint8_t instance, uint8_t scl_pin, uint8_t sda_pin)
+{
+    if (instance >= 2) {
+        DA7281_LOG_ERROR("Invalid TWI instance: %d (valid: 0-1)", instance);
+        return DA7281_ERROR_INVALID_PARAM;
+    }
+
+    if (s_twi_initialized[instance]) {
+        DA7281_LOG_WARNING("TWI%d already initialized - pin configuration ignored", instance);
+        return DA7281_ERROR_ALREADY_INITIALIZED;
+    }
+
+    s_twi_pins[instance].scl = scl_pin;
+    s_twi_pins[instance].sda = sda_pin;
+    s_twi_pins[instance].configured = true;
+
+    DA7281_LOG_INFO("TWI%d pins configured: SCL=P0.%d, SDA=P0.%d", instance, scl_pin, sda_pin);
+
+    return DA7281_OK;
+}
+
+/**
  * @brief Write single byte to DA7281 register
  *
  * Performs a thread-safe I2C write operation to a DA7281 register.
@@ -156,9 +222,9 @@ da7281_error_t da7281_write_register(da7281_device_t *device,
     DA7281_CHECK_NULL(device);
 
     /* Initialize mutex if needed */
-    da7281_error_t err = da7281_i2c_init_mutex();
+    da7281_error_t err = da7281_i2c_init_mutex(device->twi_instance);
     if (err != DA7281_OK) {
-        DA7281_LOG_ERROR("Mutex initialization failed");
+        DA7281_LOG_ERROR("Mutex initialization failed for TWI%d", device->twi_instance);
         return err;
     }
 
@@ -169,10 +235,10 @@ da7281_error_t da7281_write_register(da7281_device_t *device,
         return err;
     }
 
-    /* Take mutex with timeout */
-    if (xSemaphoreTake(s_i2c_mutex, DA7281_MUTEX_TIMEOUT_TICKS) != pdTRUE) {
-        DA7281_LOG_ERROR("Failed to acquire I2C mutex (timeout after %d ms)",
-                         DA7281_I2C_TIMEOUT_MS);
+    /* Take mutex with timeout (per-bus mutex for parallel access to different buses) */
+    if (xSemaphoreTake(s_i2c_mutex[device->twi_instance], DA7281_MUTEX_TIMEOUT_TICKS) != pdTRUE) {
+        DA7281_LOG_ERROR("Failed to acquire I2C mutex for TWI%d (timeout after %d ms)",
+                         device->twi_instance, DA7281_I2C_TIMEOUT_MS);
         return DA7281_ERROR_MUTEX_FAILED;
     }
 
@@ -187,7 +253,7 @@ da7281_error_t da7281_write_register(da7281_device_t *device,
                                      false);
 
     /* Release mutex */
-    xSemaphoreGive(s_i2c_mutex);
+    xSemaphoreGive(s_i2c_mutex[device->twi_instance]);
 
     if (ret != NRF_SUCCESS) {
         DA7281_LOG_ERROR("I2C write failed: TWI%d, addr=0x%02X, reg=0x%02X, val=0x%02X, err=0x%08X",
@@ -232,9 +298,9 @@ da7281_error_t da7281_read_register(da7281_device_t *device,
     DA7281_CHECK_NULL(value);
 
     /* Initialize mutex if needed */
-    da7281_error_t err = da7281_i2c_init_mutex();
+    da7281_error_t err = da7281_i2c_init_mutex(device->twi_instance);
     if (err != DA7281_OK) {
-        DA7281_LOG_ERROR("Mutex initialization failed");
+        DA7281_LOG_ERROR("Mutex initialization failed for TWI%d", device->twi_instance);
         return err;
     }
 
@@ -245,10 +311,10 @@ da7281_error_t da7281_read_register(da7281_device_t *device,
         return err;
     }
 
-    /* Take mutex with timeout */
-    if (xSemaphoreTake(s_i2c_mutex, DA7281_MUTEX_TIMEOUT_TICKS) != pdTRUE) {
-        DA7281_LOG_ERROR("Failed to acquire I2C mutex (timeout after %d ms)",
-                         DA7281_I2C_TIMEOUT_MS);
+    /* Take mutex with timeout (per-bus mutex for parallel access to different buses) */
+    if (xSemaphoreTake(s_i2c_mutex[device->twi_instance], DA7281_MUTEX_TIMEOUT_TICKS) != pdTRUE) {
+        DA7281_LOG_ERROR("Failed to acquire I2C mutex for TWI%d (timeout after %d ms)",
+                         device->twi_instance, DA7281_I2C_TIMEOUT_MS);
         return DA7281_ERROR_MUTEX_FAILED;
     }
 
@@ -270,7 +336,7 @@ da7281_error_t da7281_read_register(da7281_device_t *device,
     }
 
     /* Release mutex */
-    xSemaphoreGive(s_i2c_mutex);
+    xSemaphoreGive(s_i2c_mutex[device->twi_instance]);
 
     if (ret != NRF_SUCCESS) {
         DA7281_LOG_ERROR("I2C read failed: TWI%d, addr=0x%02X, reg=0x%02X, err=0x%08X",

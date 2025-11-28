@@ -57,6 +57,55 @@ da7281-dwm3001c-hal/
     └── ARCHITECTURE.md
 ```
 
+## Build & Test
+
+This repository includes a standalone CMake build for verification purposes.
+
+### Prerequisites
+
+- **Toolchain:** `arm-none-eabi-gcc` (tested with version 14.2.1)
+- **SDK:** Qorvo DWM3001CDK SDK v1.1.1 (or Nordic SDK 17.1.0)
+- **Build tools:** CMake 3.20+, Make
+
+### Build Instructions
+
+```bash
+# Clone the repository
+git clone https://github.com/ansarirahim/da7281-dwm3001c-hal.git
+cd da7281-dwm3001c-hal
+
+# Set SDK path (if not using default ~/DW3_QM33_SDK/SDK_BSP/Nordic/SDK_17_1_0)
+export QORVO_SDK_PATH=/path/to/your/DW3_QM33_SDK/SDK_BSP/Nordic/SDK_17_1_0
+
+# Build
+mkdir build && cd build
+cmake ..
+make
+
+# Check object file sizes
+make size
+```
+
+### Build Output
+
+The build produces object files (not a standalone executable):
+- `CMakeFiles/da7281_hal.dir/src/da7281.c.obj` (~4.3 KB)
+- `CMakeFiles/da7281_hal.dir/src/da7281_i2c.c.obj`
+
+These object files are ready to be linked into your final application.
+
+### Compiler Flags
+
+The build uses the following flags for ARM Cortex-M4:
+- `-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16`
+- `-O2 -g` (optimized with debug symbols)
+- `-Wall -Werror` (all warnings treated as errors)
+- `-ffunction-sections -fdata-sections` (for linker garbage collection)
+
+### Verification
+
+The CMakeLists.txt includes ARM toolchain auto-selection to ensure consistent builds across different host systems (Ubuntu, macOS, Raspberry Pi, etc.).
+
 ## Integration (Qorvo / Nordic SDK)
 
 ### Step 1 — Copy files

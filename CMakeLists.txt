@@ -1,5 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 
+# ======================================================================
+# Auto-select ARM toolchain if not provided (Christopher's addition)
+# ======================================================================
+
+if (NOT CMAKE_C_COMPILER)
+    set(ARM_TOOLCHAIN arm-none-eabi-gcc)
+    set(ARM_ASM_TOOLCHAIN arm-none-eabi-gcc)
+
+    message(STATUS "Using default ARM compiler: ${ARM_TOOLCHAIN}")
+
+    # Tell CMake we are cross-compiling
+    set(CMAKE_SYSTEM_NAME Generic)
+    set(CMAKE_SYSTEM_PROCESSOR ARM)
+
+    # Direct compiler selection
+    set(CMAKE_C_COMPILER   ${ARM_TOOLCHAIN})
+    set(CMAKE_ASM_COMPILER ${ARM_ASM_TOOLCHAIN})
+
+    # Needed to avoid running test binaries
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+endif()
+
 # Set toolchain before project()
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ARM)
@@ -117,4 +139,3 @@ add_custom_target(info
     COMMAND ${CMAKE_COMMAND} -E echo ""
     DEPENDS da7281_hal
 )
-

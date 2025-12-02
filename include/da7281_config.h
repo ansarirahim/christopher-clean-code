@@ -147,11 +147,45 @@ extern "C" {
 #endif /* DA7281_ENABLE_PARAM_CHECK */
 
 /* ========================================================================
+ * Logging Backend Configuration
+ * ========================================================================
+ *
+ * DA7281_LOG_BACKEND options:
+ *   0 = Disabled (no logging)
+ *   1 = NRF_LOG (Nordic SDK - RTT or UART via sdk_config.h)
+ *   2 = QORVO_SDK (QLOGE/QLOGW/QLOGI/QLOGD macros)
+ *   3 = SEGGER_RTT (Direct SEGGER RTT, no Nordic wrapper)
+ *   4 = UART_PRINTF (Direct printf to UART)
+ *   5 = CUSTOM (User provides DA7281_LOG_* macros before including this header)
+ *
+ * For Qorvo DWM3001CDK with JLinkRTTViewer:
+ *   - Use DA7281_LOG_BACKEND=2 to integrate with QLOGE (recommended)
+ *   - Or use DA7281_LOG_BACKEND=3 for direct SEGGER RTT
+ *
+ * For UART over minicom:
+ *   - Use DA7281_LOG_BACKEND=1 with NRF_LOG_BACKEND_UART_ENABLED=1
+ *   - Or use DA7281_LOG_BACKEND=4 for direct printf
+ * ======================================================================== */
+
+#ifndef DA7281_LOG_BACKEND
+#define DA7281_LOG_BACKEND              (1U)  /* Default: NRF_LOG */
+#endif
+
+/* ========================================================================
  * Logging Macros
  * ======================================================================== */
 
-#if DA7281_ENABLE_DEBUG_LOG
+#if (DA7281_LOG_BACKEND == 0) || !DA7281_ENABLE_DEBUG_LOG
 
+/* Logging disabled */
+#define DA7281_LOG_ERROR(...)   ((void)0)
+#define DA7281_LOG_WARNING(...) ((void)0)
+#define DA7281_LOG_INFO(...)    ((void)0)
+#define DA7281_LOG_DEBUG(...)   ((void)0)
+
+#elif (DA7281_LOG_BACKEND == 1)
+
+/* Nordic SDK NRF_LOG (configurable via sdk_config.h for RTT or UART) */
 #include "nrf_log.h"
 
 #define DA7281_LOG_ERROR(...)   NRF_LOG_ERROR(__VA_ARGS__)
@@ -159,14 +193,55 @@ extern "C" {
 #define DA7281_LOG_INFO(...)    NRF_LOG_INFO(__VA_ARGS__)
 #define DA7281_LOG_DEBUG(...)   NRF_LOG_DEBUG(__VA_ARGS__)
 
+#elif (DA7281_LOG_BACKEND == 2)
+
+/* Qorvo SDK QLOG macros (for use with JLinkRTTViewer) */
+#include "qlog.h"
+
+#define DA7281_LOG_ERROR(...)   QLOGE(__VA_ARGS__)
+#define DA7281_LOG_WARNING(...) QLOGW(__VA_ARGS__)
+#define DA7281_LOG_INFO(...)    QLOGI(__VA_ARGS__)
+#define DA7281_LOG_DEBUG(...)   QLOGD(__VA_ARGS__)
+
+#elif (DA7281_LOG_BACKEND == 3)
+
+/* Direct SEGGER RTT (bypasses Nordic SDK wrapper) */
+#include "SEGGER_RTT.h"
+
+#define DA7281_LOG_ERROR(...)   SEGGER_RTT_printf(0, "[ERR] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
+#define DA7281_LOG_WARNING(...) SEGGER_RTT_printf(0, "[WRN] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
+#define DA7281_LOG_INFO(...)    SEGGER_RTT_printf(0, "[INF] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
+#define DA7281_LOG_DEBUG(...)   SEGGER_RTT_printf(0, "[DBG] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
+
+#elif (DA7281_LOG_BACKEND == 4)
+
+/* Direct UART printf (requires stdio configured for UART) */
+#include <stdio.h>
+
+#define DA7281_LOG_ERROR(...)   do { printf("[ERR] DA7281: "); printf(__VA_ARGS__); printf("\n"); } while(0)
+#define DA7281_LOG_WARNING(...) do { printf("[WRN] DA7281: "); printf(__VA_ARGS__); printf("\n"); } while(0)
+#define DA7281_LOG_INFO(...)    do { printf("[INF] DA7281: "); printf(__VA_ARGS__); printf("\n"); } while(0)
+#define DA7281_LOG_DEBUG(...)   do { printf("[DBG] DA7281: "); printf(__VA_ARGS__); printf("\n"); } while(0)
+
+#elif (DA7281_LOG_BACKEND == 5)
+
+/* Custom logging - user must define DA7281_LOG_* macros before including this header */
+#ifndef DA7281_LOG_ERROR
+#error "DA7281_LOG_BACKEND=5 (CUSTOM) requires DA7281_LOG_ERROR to be defined"
+#endif
+#ifndef DA7281_LOG_WARNING
+#error "DA7281_LOG_BACKEND=5 (CUSTOM) requires DA7281_LOG_WARNING to be defined"
+#endif
+#ifndef DA7281_LOG_INFO
+#error "DA7281_LOG_BACKEND=5 (CUSTOM) requires DA7281_LOG_INFO to be defined"
+#endif
+#ifndef DA7281_LOG_DEBUG
+#error "DA7281_LOG_BACKEND=5 (CUSTOM) requires DA7281_LOG_DEBUG to be defined"
+#endif
+
 #else
-
-#define DA7281_LOG_ERROR(...)   ((void)0)
-#define DA7281_LOG_WARNING(...) ((void)0)
-#define DA7281_LOG_INFO(...)    ((void)0)
-#define DA7281_LOG_DEBUG(...)   ((void)0)
-
-#endif /* DA7281_ENABLE_DEBUG_LOG */
+#error "Invalid DA7281_LOG_BACKEND value. Must be 0-5."
+#endif /* DA7281_LOG_BACKEND */
 
 #ifdef __cplusplus
 }

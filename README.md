@@ -12,28 +12,28 @@ Hardware Abstraction Layer for the DA7281 haptic driver (Dialog/Renesas) on Qorv
 
 ## Features
 
-- Multi-device support (up to 4 DA7281 devices per I²C bus)
-- Thread-safe I²C operations with FreeRTOS mutex protection
+- Multi-device support (up to 4 DA7281 devices per I2C bus)
+- Thread-safe I2C operations with FreeRTOS mutex protection
 - Power control with 1.5 ms sequencing per datasheet
-- LRA configuration (170 Hz resonant frequency, 6.75 Ω impedance)
+- LRA configuration (170 Hz resonant frequency, 6.75 ohm impedance)
 - Supported operation modes: DRO, PWM, RTWM, ETWM (and streaming)
-- Override mode for direct amplitude control (0–255)
+- Override mode for direct amplitude control (0-255)
 - Startup self-test routine and result validation
 - Comprehensive error handling and runtime logging
 
 ## Hardware Configuration
 
 ### Device addresses (Datasheet Table 16, p.58)
-- `0x48` — ADDR_1 = GND, ADDR_0 = GND
-- `0x49` — ADDR_1 = GND, ADDR_0 = VDDIO
-- `0x4A` — ADDR_1 = VDDIO, ADDR_0 = GND
-- `0x4B` — ADDR_1 = VDDIO, ADDR_0 = VDDIO
+- `0x48` - ADDR_1 = GND, ADDR_0 = GND
+- `0x49` - ADDR_1 = GND, ADDR_0 = VDDIO
+- `0x4A` - ADDR_1 = VDDIO, ADDR_0 = GND
+- `0x4B` - ADDR_1 = VDDIO, ADDR_0 = VDDIO
 
-> You can place up to four DA7281s on a single I²C bus using the four address combinations above. If you need more devices you can spread them across multiple TWI instances.
+> You can place up to four DA7281s on a single I2C bus using the four address combinations above. If you need more devices you can spread them across multiple TWI instances.
 
 ### LRA example specs used for configuration
 - Resonant frequency: **170 Hz**
-- Actuator impedance: **6.75 Ω**
+- Actuator impedance: **6.75 ohm**
 - Nominal max voltage: **2.5 V RMS**
 - Absolute max voltage: **3.5 V peak**
 - Target max current: **350 mA**
@@ -42,19 +42,19 @@ Hardware Abstraction Layer for the DA7281 haptic driver (Dialog/Renesas) on Qorv
 
 ```
 da7281-dwm3001c-hal/
-├── include/
-│   ├── da7281.h
-│   ├── da7281_registers.h
-│   └── da7281_config.h
-├── src/
-│   ├── da7281.c
-│   └── da7281_i2c.c
-├── config/
-│   └── sdk_config.h
-├── examples/
-│   └── haptics_demo.c
-└── docs/
-    └── ARCHITECTURE.md
++-- include/
+|   +-- da7281.h
+|   +-- da7281_registers.h
+|   +-- da7281_config.h
++-- src/
+|   +-- da7281.c
+|   +-- da7281_i2c.c
++-- config/
+|   +-- sdk_config.h
++-- examples/
+|   +-- haptics_demo.c
++-- docs/
+    +-- ARCHITECTURE.md
 ```
 
 ## Build & Test
@@ -108,7 +108,7 @@ The CMakeLists.txt includes ARM toolchain auto-selection to ensure consistent bu
 
 ## Integration (Qorvo / Nordic SDK)
 
-### Step 1 — Copy files
+### Step 1 - Copy files
 ```bash
 cp src/da7281.c your_project/src/
 cp src/da7281_i2c.c your_project/src/
@@ -116,7 +116,7 @@ cp include/*.h your_project/include/
 cp config/sdk_config.h your_project/config/   # merge as needed
 ```
 
-### Step 2 — Build system
+### Step 2 - Build system
 
 **Makefile**
 
@@ -140,7 +140,7 @@ target_include_directories(your_target PRIVATE
   include/)
 ```
 
-### Step 3 — SDK config
+### Step 3 - SDK config
 
 Ensure `sdk_config.h` enables TWI/FreeRTOS hooks required:
 
@@ -149,6 +149,46 @@ Ensure `sdk_config.h` enables TWI/FreeRTOS hooks required:
 #define TWI0_ENABLED 1
 #define TWI1_ENABLED 1   // if using second bus
 #define TWI_DEFAULT_CONFIG_FREQUENCY NRF_TWI_FREQ_400K
+```
+
+### Step 4 - Logging Configuration
+
+The HAL supports multiple logging backends. Configure `DA7281_LOG_BACKEND` before including the HAL headers:
+
+| Value | Backend | Description |
+|-------|---------|-------------|
+| 0 | Disabled | No logging output |
+| 1 | NRF_LOG | Nordic SDK (default) - RTT or UART via `sdk_config.h` |
+| 2 | QORVO_SDK | Uses `QLOGE`/`QLOGW`/`QLOGI`/`QLOGD` (JLinkRTTViewer) |
+| 3 | SEGGER_RTT | Direct SEGGER RTT (bypasses Nordic wrapper) |
+| 4 | UART_PRINTF | Direct `printf` to UART |
+| 5 | CUSTOM | User-defined macros |
+
+**For Qorvo DWM3001CDK with JLinkRTTViewer** (recommended for HelloWorld integration):
+
+```c
+// In your project's config or before including da7281.h
+#define DA7281_LOG_BACKEND 2   // Use QLOGE/QLOGW/QLOGI/QLOGD
+#include "da7281.h"
+```
+
+**For UART via minicom:**
+
+```c
+#define DA7281_LOG_BACKEND 4   // Direct printf to UART
+#include "da7281.h"
+```
+
+**Custom logging backend:**
+
+```c
+// Define your macros BEFORE including da7281_config.h
+#define DA7281_LOG_BACKEND 5
+#define DA7281_LOG_ERROR(...)   my_log_error(__VA_ARGS__)
+#define DA7281_LOG_WARNING(...) my_log_warning(__VA_ARGS__)
+#define DA7281_LOG_INFO(...)    my_log_info(__VA_ARGS__)
+#define DA7281_LOG_DEBUG(...)   my_log_debug(__VA_ARGS__)
+#include "da7281.h"
 ```
 
 ## Usage Example (single device)
@@ -208,7 +248,7 @@ See `include/da7281.h` for full prototypes and doxygen comments.
 
 ## Troubleshooting
 
-**I²C fails / no ACK**
+**I2C fails / no ACK**
 
 * Confirm ADDR_0/ADDR_1 wiring & correct device address.
 * Confirm TWI instance is initialized.

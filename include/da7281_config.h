@@ -41,6 +41,15 @@ extern "C" {
 #define DA7281_POWER_ON_DELAY_MS        (2U)
 #endif
 
+/**
+ * @brief Enable GPIO-controlled power/enable
+ *
+ * Set to 0 if the device is always powered and no GPIO enable is present.
+ */
+#ifndef DA7281_ENABLE_GPIO_POWER
+#define DA7281_ENABLE_GPIO_POWER        (1U)
+#endif
+
 /** I2C address: ADDR_1=GND, ADDR_0=GND (datasheet Table 16, p58) */
 #ifndef DA7281_I2C_ADDR_0x48
 #define DA7281_I2C_ADDR_0x48            (0x48U)
@@ -248,4 +257,3 @@ extern "C" {
 #endif
 
 #endif /* DA7281_CONFIG_H */
-

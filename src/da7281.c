@@ -28,14 +28,14 @@ da7281_error_t da7281_power_on(da7281_device_t *device)
         return DA7281_OK;
     }
 
-    /* Configure GPIO as output */
+    /* If GPIO control is enabled, drive the enable pin; otherwise assume always-on */
+#if DA7281_ENABLE_GPIO_POWER
     nrf_gpio_cfg_output(device->gpio_enable_pin);
-
-    /* Enable power */
     nrf_gpio_pin_set(device->gpio_enable_pin);
-
-    /* Wait for power-up sequence (datasheet minimum: 1.5ms) */
     vTaskDelay(pdMS_TO_TICKS(DA7281_POWER_ON_DELAY_MS));
+#else
+    (void)device->gpio_enable_pin;
+#endif
 
     device->powered_on = true;
 
@@ -55,8 +55,11 @@ da7281_error_t da7281_power_off(da7281_device_t *device)
         return DA7281_OK;
     }
 
-    /* Disable power */
+#if DA7281_ENABLE_GPIO_POWER
     nrf_gpio_pin_clear(device->gpio_enable_pin);
+#else
+    (void)device->gpio_enable_pin;
+#endif
 
     device->powered_on = false;
     device->initialized = false;
@@ -637,4 +640,3 @@ da7281_error_t da7281_read_chip_revision(da7281_device_t *device,
 
     return da7281_read_register(device, DA7281_REG_CHIP_REV, revision);
 }
-

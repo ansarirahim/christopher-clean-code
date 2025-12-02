@@ -25,10 +25,18 @@
 /** FreeRTOS mutex for thread-safe I2C access (one per TWI bus) */
 static SemaphoreHandle_t s_i2c_mutex[2] = {NULL, NULL};
 
-/** TWI instance handles */
+/** TWI instance handles (only instantiate enabled instances) */
 static nrf_drv_twi_t s_twi_instances[2] = {
+#if (defined(NRFX_TWIM0_ENABLED) && NRFX_CHECK(NRFX_TWIM0_ENABLED)) || (defined(NRFX_TWI0_ENABLED) && NRFX_CHECK(NRFX_TWI0_ENABLED))
     NRF_DRV_TWI_INSTANCE(0),
+#else
+    {0},
+#endif
+#if (defined(NRFX_TWIM1_ENABLED) && NRFX_CHECK(NRFX_TWIM1_ENABLED)) || (defined(NRFX_TWI1_ENABLED) && NRFX_CHECK(NRFX_TWI1_ENABLED))
     NRF_DRV_TWI_INSTANCE(1)
+#else
+    {0}
+#endif
 };
 
 /** TWI initialization status */
@@ -413,4 +421,3 @@ da7281_error_t da7281_modify_register(da7281_device_t *device,
 
     return DA7281_OK;
 }
-

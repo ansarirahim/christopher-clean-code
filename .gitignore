@@ -56,3 +56,6 @@ __pycache__/
 *.bak
 *.orig
 
+# Local tracking (not for GitHub)
+.local/
+

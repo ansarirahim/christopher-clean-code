@@ -93,9 +93,7 @@ typedef struct {
 typedef struct {
     uint8_t twi_instance;           /**< TWI/I2C instance (0 or 1) */
     uint8_t i2c_address;            /**< I2C address (0x48, 0x49, 0x4A, or 0x4B) */
-    uint8_t gpio_enable_pin;        /**< GPIO pin for power enable */
     bool initialized;               /**< Initialization status */
-    bool powered_on;                /**< Power state */
     da7281_operation_mode_t mode;   /**< Current operation mode */
     void *twi_handle;               /**< Platform-specific TWI handle */
 } da7281_device_t;
@@ -125,25 +123,6 @@ da7281_error_t da7281_init(da7281_device_t *device);
  * @return DA7281_OK on success, error code otherwise
  */
 da7281_error_t da7281_deinit(da7281_device_t *device);
-
-/**
- * @brief Power on DA7281 device
- * 
- * Enables power to the device via GPIO and waits for proper
- * power-up sequence (minimum 1.5ms per datasheet).
- * 
- * @param[in,out] device Pointer to device handle
- * @return DA7281_OK on success, error code otherwise
- */
-da7281_error_t da7281_power_on(da7281_device_t *device);
-
-/**
- * @brief Power off DA7281 device
- *
- * @param[in,out] device Pointer to device handle
- * @return DA7281_OK on success, error code otherwise
- */
-da7281_error_t da7281_power_off(da7281_device_t *device);
 
 /* ========================================================================
  * Function Prototypes - Configuration
@@ -321,4 +300,3 @@ da7281_error_t da7281_modify_register(da7281_device_t *device,
 #endif
 
 #endif /* DA7281_H */
-

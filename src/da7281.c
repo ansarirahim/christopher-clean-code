@@ -17,59 +17,6 @@
  * ======================================================================== */
 
 /**
- * @brief Power on DA7281 device
- */
-da7281_error_t da7281_power_on(da7281_device_t *device)
-{
-    DA7281_CHECK_NULL(device);
-
-    if (device->powered_on) {
-        DA7281_LOG_WARNING("Device already powered on");
-        return DA7281_OK;
-    }
-
-    /* If GPIO control is enabled, drive the enable pin; otherwise assume always-on */
-#if DA7281_ENABLE_GPIO_POWER
-    nrf_gpio_cfg_output(device->gpio_enable_pin);
-    nrf_gpio_pin_set(device->gpio_enable_pin);
-    vTaskDelay(pdMS_TO_TICKS(DA7281_POWER_ON_DELAY_MS));
-#else
-    (void)device->gpio_enable_pin;
-#endif
-
-    device->powered_on = true;
-
-    DA7281_LOG_INFO("Device powered on (GPIO pin %d)", device->gpio_enable_pin);
-
-    return DA7281_OK;
-}
-
-/**
- * @brief Power off DA7281 device
- */
-da7281_error_t da7281_power_off(da7281_device_t *device)
-{
-    DA7281_CHECK_NULL(device);
-
-    if (!device->powered_on) {
-        return DA7281_OK;
-    }
-
-#if DA7281_ENABLE_GPIO_POWER
-    nrf_gpio_pin_clear(device->gpio_enable_pin);
-#else
-    (void)device->gpio_enable_pin;
-#endif
-
-    device->powered_on = false;
-    device->initialized = false;
-
-    DA7281_LOG_INFO("Device powered off");
-
-    return DA7281_OK;
-}
-
-/**
  * @brief Initialize DA7281 device
  *
  * Performs complete device initialization sequence:
@@ -79,14 +26,12 @@ da7281_error_t da7281_power_off(da7281_device_t *device)
  * 4. Set initial operation mode to INACTIVE
  *
  * Prerequisites:
- * - Device must be powered on (da7281_power_on() called first)
  * - I2C bus must be functional
  *
  * @param device Pointer to device handle
  * @return DA7281_OK on success
  * @return DA7281_ERROR_NULL_POINTER if device is NULL
  * @return DA7281_ERROR_ALREADY_INITIALIZED if already initialized
- * @return DA7281_ERROR_NOT_INITIALIZED if not powered on
  * @return DA7281_ERROR_CHIP_ID_MISMATCH if chip ID != 0x01
  * @return DA7281_ERROR_I2C_READ/WRITE on communication failure
  */
@@ -97,11 +42,6 @@ da7281_error_t da7281_init(da7281_device_t *device)
     if (device->initialized) {
         DA7281_LOG_WARNING("Device already initialized");
         return DA7281_ERROR_ALREADY_INITIALIZED;
-    }
-
-    if (!device->powered_on) {
-        DA7281_LOG_ERROR("Device must be powered on before initialization");
-        return DA7281_ERROR_NOT_INITIALIZED;
     }
 
     da7281_error_t err;

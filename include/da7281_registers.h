@@ -2,10 +2,10 @@
  * @file da7281_registers.h
  * @brief DA7281 Register Definitions
  * @author A. R. Ansari
- * @date 2024-11-21
+ * @date 2025-12-10
  * 
  * Complete register map and bit field definitions for Dialog DA7281
- * haptic driver IC. All definitions verified against datasheet v1.1.
+ * haptic driver IC. All definitions verified against datasheet v3.1.
  */
 
 #ifndef DA7281_REGISTERS_H
@@ -155,7 +155,7 @@ extern "C" {
  * Register Bit Field Definitions
  * ======================================================================== */
 
-/* TOP_CFG1 (0x02) - Operation Mode Control */
+/* TOP_CFG1 (0x13) - Operation Mode Control */
 #define DA7281_TOP_CFG1_OP_MODE_MASK    (0x07U)
 #define DA7281_TOP_CFG1_OP_MODE_SHIFT   (0U)
 #define DA7281_OP_MODE_INACTIVE         (0x00U)
@@ -180,13 +180,13 @@ extern "C" {
 /* TOP_CFG1 - Amplitude Register Update */
 #define DA7281_TOP_CFG1_AMP_REG_UPDATE  (0x80U)
 
-/* TOP_CFG2 (0x03) - Motor Type */
+/* TOP_CFG2 (0x14) - Motor Type */
 #define DA7281_TOP_CFG2_MOTOR_TYPE_MASK (0x03U)
 #define DA7281_MOTOR_TYPE_LRA           (0x00U)  /**< Linear Resonant Actuator */
 #define DA7281_MOTOR_TYPE_ERM_BAR       (0x01U)  /**< ERM with back-EMF */
 #define DA7281_MOTOR_TYPE_ERM_COIN      (0x02U)  /**< ERM coin type */
 
-/* TOP_CTL1 (0x06) - Sequencer Start */
+/* TOP_CTL1 (0x22) - Sequencer Start */
 #define DA7281_TOP_CTL1_SEQ_START       (0x01U)
 
 /* TOP_CTL1 - Sequencer Continue */

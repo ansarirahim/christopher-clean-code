@@ -143,22 +143,6 @@ void haptics_demo_task(void *pvParameters)
         goto error;
     }
 
-    /* Run self-test */
-    NRF_LOG_INFO("Running self-test...");
-    bool selftest_passed = false;
-    err = da7281_run_selftest(&s_haptic_device_1, &selftest_passed);
-    if (err != DA7281_OK) {
-        NRF_LOG_ERROR("Self-test failed to execute: %d", err);
-        goto error;
-    }
-
-    if (!selftest_passed) {
-        NRF_LOG_ERROR("Self-test FAILED!");
-        goto error;
-    }
-
-    NRF_LOG_INFO("Self-test PASSED!");
-
     /* Set to DRO mode */
     NRF_LOG_INFO("Setting operation mode to DRO...");
     err = da7281_set_operation_mode(&s_haptic_device_1, DA7281_MODE_DRO);
@@ -195,4 +179,3 @@ error:
     da7281_power_off(&s_haptic_device_1);
     vTaskDelete(NULL);
 }
-

@@ -142,12 +142,6 @@ extern "C" {
 /** Override amplitude register */
 #define DA7281_REG_OVERRIDE_AMP         (0xA9U)
 
-/** Self-test configuration register */
-#define DA7281_REG_SELFTEST_CFG         (0xAAU)
-
-/** Self-test result register (Read-only) */
-#define DA7281_REG_SELFTEST_RESULT      (0xABU)
-
 /* ========================================================================
  * Register Bit Field Definitions
  * ======================================================================== */
@@ -211,10 +205,6 @@ extern "C" {
 #define DA7281_CHIP_REV_VALUE           (0xCAU)
 /* Legacy chip revision value observed on early boards */
 #define DA7281_CHIP_REV_LEGACY_VALUE    (0xBAU)
-
-/* Self-test result bits */
-#define DA7281_SELFTEST_RESULT_PASS     (0x01U)
-#define DA7281_SELFTEST_RESULT_FAIL     (0x00U)
 
 #ifdef __cplusplus
 }

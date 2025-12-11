@@ -230,7 +230,6 @@ typedef enum {
     DA7281_ERROR_NOT_INITIALIZED,     // Device not initialized
     DA7281_ERROR_ALREADY_INITIALIZED, // Device already initialized
     DA7281_ERROR_CHIP_REV_MISMATCH,   // Chip revision verification failed
-    DA7281_ERROR_SELFTEST_FAILED,     // Self-test failed
     DA7281_ERROR_MUTEX_FAILED,        // Mutex operation failed
     DA7281_ERROR_UNKNOWN              // Unknown error
 } da7281_error_t;

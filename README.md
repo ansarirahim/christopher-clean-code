@@ -18,7 +18,6 @@ Hardware Abstraction Layer for the DA7281 haptic driver (Dialog/Renesas) on Qorv
 - LRA configuration (170 Hz resonant frequency, 6.75 ohm impedance)
 - Supported operation modes: DRO, PWM, RTWM, ETWM (and streaming)
 - Override mode for direct amplitude control (0-255)
-- Startup self-test routine and result validation
 - Comprehensive error handling and runtime logging
 
 ## Hardware Configuration

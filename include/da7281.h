@@ -50,7 +50,6 @@ typedef enum {
     DA7281_ERROR_NOT_INITIALIZED,       /**< Device not initialized */
     DA7281_ERROR_ALREADY_INITIALIZED,   /**< Device already initialized */
     DA7281_ERROR_CHIP_REV_MISMATCH,     /**< Chip revision verification failed */
-    DA7281_ERROR_SELFTEST_FAILED,       /**< Self-test failed */
     DA7281_ERROR_MUTEX_FAILED,          /**< Mutex operation failed */
     DA7281_ERROR_UNKNOWN                /**< Unknown error */
 } da7281_error_t;
@@ -184,21 +183,6 @@ da7281_error_t da7281_set_override_amplitude(da7281_device_t *device,
  */
 da7281_error_t da7281_set_amplifier_enable(da7281_device_t *device,
                                              bool enable);
-
-/* ========================================================================
- * Function Prototypes - Self-Test & Diagnostics
- * ======================================================================== */
-
-/**
- * @brief Run self-test
- *
- * Executes the built-in self-test and returns the result.
- *
- * @param[in] device Pointer to device handle
- * @param[out] passed Pointer to store test result (true=pass, false=fail)
- * @return DA7281_OK on success, error code otherwise
- */
-da7281_error_t da7281_run_selftest(da7281_device_t *device, bool *passed);
 
 /**
  * @brief Read chip ID

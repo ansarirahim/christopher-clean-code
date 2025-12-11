@@ -93,15 +93,19 @@ da7281_error_t da7281_init(da7281_device_t *device)
         }
     }
 
+    /* Mark initialized before calling set_operation_mode so guard passes.
+     * Roll back on failure. */
+    device->initialized = true;
+
     /* Set to inactive mode initially */
     DA7281_LOG_DEBUG("Setting initial operation mode to INACTIVE...");
     err = da7281_set_operation_mode(device, DA7281_MODE_INACTIVE);
     if (err != DA7281_OK) {
         DA7281_LOG_ERROR("Failed to set operation mode to INACTIVE");
+        device->initialized = false;
         return err;
     }
 
-    device->initialized = true;
     device->mode = DA7281_MODE_INACTIVE;
 
     DA7281_LOG_INFO("Device initialized successfully (TWI%d, addr=0x%02X)",

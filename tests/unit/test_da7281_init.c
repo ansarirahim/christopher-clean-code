@@ -101,19 +101,12 @@ void test_da7281_init_success(void)
     /* Setup */
     test_device.powered_on = true;
 
-    /* Setup expectations for chip ID read */
-    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_ID, DA7281_CHIP_ID_VALUE};
+    /* Setup expectations for chip revision read */
+    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_REV, DA7281_CHIP_REV_VALUE};
     nrf_drv_twi_tx_ExpectAndReturn(&mock_twi_instance, 0x4A, 
                                      &chip_id_data[0], 1, true, NRF_SUCCESS);
     nrf_drv_twi_rx_ExpectAndReturn(&mock_twi_instance, 0x4A,
                                      &chip_id_data[1], 1, NRF_SUCCESS);
-
-    /* Setup expectations for chip revision read */
-    uint8_t rev_data[2] = {DA7281_REG_CHIP_REV, 0x01};
-    nrf_drv_twi_tx_ExpectAndReturn(&mock_twi_instance, 0x4A,
-                                     &rev_data[0], 1, true, NRF_SUCCESS);
-    nrf_drv_twi_rx_ExpectAndReturn(&mock_twi_instance, 0x4A,
-                                     &rev_data[1], 1, NRF_SUCCESS);
 
     /* Setup expectations for motor type configuration */
     /* ... (read-modify-write sequence) */
@@ -163,13 +156,13 @@ void test_da7281_init_already_initialized(void)
     TEST_ASSERT_EQUAL(DA7281_ERROR_ALREADY_INITIALIZED, err);
 }
 
-void test_da7281_init_chip_id_mismatch(void)
+void test_da7281_init_chip_rev_mismatch(void)
 {
     /* Setup */
     test_device.powered_on = true;
 
-    /* Setup expectations - wrong chip ID */
-    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_ID, 0xFF};  /* Wrong ID */
+    /* Setup expectations - wrong chip revision */
+    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_REV, 0xFF};  /* Wrong revision */
     nrf_drv_twi_tx_ExpectAndReturn(&mock_twi_instance, 0x4A,
                                      &chip_id_data[0], 1, true, NRF_SUCCESS);
     nrf_drv_twi_rx_ExpectAndReturn(&mock_twi_instance, 0x4A,
@@ -179,7 +172,7 @@ void test_da7281_init_chip_id_mismatch(void)
     da7281_error_t err = da7281_init(&test_device);
 
     /* Verify */
-    TEST_ASSERT_EQUAL(DA7281_ERROR_CHIP_ID_MISMATCH, err);
+    TEST_ASSERT_EQUAL(DA7281_ERROR_CHIP_REV_MISMATCH, err);
     TEST_ASSERT_FALSE(test_device.initialized);
 }
 
@@ -202,8 +195,7 @@ int main(void)
     RUN_TEST(test_da7281_init_null_pointer);
     RUN_TEST(test_da7281_init_not_powered);
     RUN_TEST(test_da7281_init_already_initialized);
-    RUN_TEST(test_da7281_init_chip_id_mismatch);
+    RUN_TEST(test_da7281_init_chip_rev_mismatch);
 
     return UNITY_END();
 }
-

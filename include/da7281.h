@@ -49,7 +49,7 @@ typedef enum {
     DA7281_ERROR_TIMEOUT,               /**< Operation timeout */
     DA7281_ERROR_NOT_INITIALIZED,       /**< Device not initialized */
     DA7281_ERROR_ALREADY_INITIALIZED,   /**< Device already initialized */
-    DA7281_ERROR_CHIP_ID_MISMATCH,      /**< Chip ID verification failed */
+    DA7281_ERROR_CHIP_REV_MISMATCH,     /**< Chip revision verification failed */
     DA7281_ERROR_SELFTEST_FAILED,       /**< Self-test failed */
     DA7281_ERROR_MUTEX_FAILED,          /**< Mutex operation failed */
     DA7281_ERROR_UNKNOWN                /**< Unknown error */
@@ -105,7 +105,7 @@ typedef struct {
 /**
  * @brief Initialize DA7281 device
  * 
- * Initializes the DA7281 device, verifies chip ID, and configures
+ * Initializes the DA7281 device, verifies chip revision, and configures
  * for basic operation.
  * 
  * @param[in,out] device Pointer to device handle
@@ -207,7 +207,7 @@ da7281_error_t da7281_run_selftest(da7281_device_t *device, bool *passed);
  * @param[out] chip_id Pointer to store chip ID
  * @return DA7281_OK on success, error code otherwise
  */
-da7281_error_t da7281_read_chip_id(da7281_device_t *device, uint8_t *chip_id);
+da7281_error_t da7281_read_chip_revision(da7281_device_t *device, uint8_t *chip_rev);
 
 /**
  * @brief Read chip revision

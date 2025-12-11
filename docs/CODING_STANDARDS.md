@@ -32,13 +32,13 @@ This document defines the coding standards for the DA7281 HAL project. These sta
 da7281_init()
 da7281_set_operation_mode()
 da7281_configure_lra()
-da7281_read_chip_id()
+da7281_read_chip_revision()
 ```
 
 ### Variables
 ```c
 // snake_case for local variables
-uint8_t chip_id;
+uint8_t chip_rev;
 float impedance_ohm;
 bool selftest_passed;
 
@@ -50,7 +50,7 @@ static bool s_twi_initialized[2];
 ### Constants and Macros
 ```c
 // UPPER_SNAKE_CASE
-#define DA7281_CHIP_ID_VALUE            (0xBAU)
+#define DA7281_CHIP_REV_VALUE           (0xCAU)
 #define DA7281_POWER_ON_DELAY_MS        (2U)
 #define DA7281_I2C_TIMEOUT_MS           (100U)
 ```
@@ -66,7 +66,7 @@ typedef struct da7281_lra_config_t;
 ### Register Definitions
 ```c
 // Format: DA7281_REG_NAME
-#define DA7281_REG_CHIP_ID              (0x00U)
+#define DA7281_REG_CHIP_REV             (0x00U)
 #define DA7281_REG_TOP_CFG1             (0x02U)
 
 // Format: DA7281_REGNAME_BITFIELD
@@ -305,12 +305,12 @@ if (err != DA7281_OK) {
 ### Provide Meaningful Error Codes
 ```c
 // ✅ Good
-if (chip_id != DA7281_CHIP_ID_VALUE) {
-    return DA7281_ERROR_CHIP_ID_MISMATCH;  // Specific error
+if (chip_rev != DA7281_CHIP_REV_VALUE) {
+    return DA7281_ERROR_CHIP_REV_MISMATCH;  // Specific error
 }
 
 // ❌ Bad
-if (chip_id != DA7281_CHIP_ID_VALUE) {
+if (chip_rev != DA7281_CHIP_REV_VALUE) {
     return DA7281_ERROR_UNKNOWN;  // Too generic
 }
 ```
@@ -320,11 +320,11 @@ if (chip_id != DA7281_CHIP_ID_VALUE) {
 ### Always Use Named Constants
 ```c
 // ✅ Good
-#define DA7281_CHIP_ID_VALUE (0xBAU)
-if (chip_id == DA7281_CHIP_ID_VALUE) { ... }
+#define DA7281_CHIP_REV_VALUE (0xCAU)
+if (chip_rev == DA7281_CHIP_REV_VALUE) { ... }
 
 // ❌ Bad
-if (chip_id == 0xBA) { ... }  // Magic number
+if (chip_rev == 0xBA) { ... }  // Magic number
 ```
 
 ### Use Enums for Related Constants
@@ -411,4 +411,3 @@ cppcheck --addon=misra --std=c11 \
 ## Document Information
 
 **Date:** November 2024
-

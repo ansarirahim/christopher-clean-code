@@ -163,7 +163,7 @@ void test_single_device_init(void)
 
     // Verify chip ID
     uint8_t chip_id;
-    TEST_ASSERT_EQUAL(DA7281_OK, da7281_read_chip_id(&device, &chip_id));
+    TEST_ASSERT_EQUAL(DA7281_OK, da7281_read_chip_revision(&device, &chip_id));
     TEST_ASSERT_EQUAL(0xBA, chip_id);
 
     // Cleanup
@@ -191,7 +191,7 @@ void test_multi_device_init(void)
     for (int i = 0; i < 2; i++) {
         uint8_t chip_id;
         TEST_ASSERT_EQUAL(DA7281_OK, 
-                          da7281_read_chip_id(&devices[i], &chip_id));
+                          da7281_read_chip_revision(&devices[i], &chip_id));
         TEST_ASSERT_EQUAL(0xBA, chip_id);
     }
 
@@ -381,4 +381,3 @@ void test_continuous_operation(void)
 ## Document Information
 
 **Date:** November 2024
-

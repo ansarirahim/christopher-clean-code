@@ -32,7 +32,7 @@
  * @return DA7281_OK on success
  * @return DA7281_ERROR_NULL_POINTER if device is NULL
  * @return DA7281_ERROR_ALREADY_INITIALIZED if already initialized
- * @return DA7281_ERROR_CHIP_ID_MISMATCH if chip ID != 0x01
+ * @return DA7281_ERROR_CHIP_REV_MISMATCH if chip revision != expected
  * @return DA7281_ERROR_I2C_READ/WRITE on communication failure
  */
 da7281_error_t da7281_init(da7281_device_t *device)
@@ -45,36 +45,27 @@ da7281_error_t da7281_init(da7281_device_t *device)
     }
 
     da7281_error_t err;
-    uint8_t chip_id = 0;
+    uint8_t chip_rev = 0;
 
     DA7281_LOG_INFO("Starting device initialization...");
 
-    /* Read and verify chip ID */
-    err = da7281_read_chip_id(device, &chip_id);
+    /* Read and verify chip revision */
+    err = da7281_read_chip_revision(device, &chip_rev);
     DA7281_LOG_DEBUG("Error code: %d", err);
     if (err != DA7281_OK) {
-        DA7281_LOG_ERROR("Failed to read chip ID - I2C communication error");
+        DA7281_LOG_ERROR("Failed to read chip revision - I2C communication error");
         return err;
     }
 
-    DA7281_LOG_DEBUG("Chip ID: 0x%02X", chip_id);
-    if (chip_id != DA7281_CHIP_ID_VALUE) {
-        DA7281_LOG_ERROR("Chip ID mismatch: expected 0x%02X, got 0x%02X",
-                         DA7281_CHIP_ID_VALUE, chip_id);
+    DA7281_LOG_DEBUG("Chip revision: 0x%02X", chip_rev);
+    if (chip_rev != DA7281_CHIP_REV_VALUE) {
+        DA7281_LOG_ERROR("Chip revision mismatch: expected 0x%02X, got 0x%02X",
+                         DA7281_CHIP_REV_VALUE, chip_rev);
         DA7281_LOG_ERROR("Possible causes: wrong I2C address, hardware fault, or not a DA7281");
-        return DA7281_ERROR_CHIP_ID_MISMATCH;
+        return DA7281_ERROR_CHIP_REV_MISMATCH;
     }
 
-    DA7281_LOG_INFO("Chip ID verified: 0x%02X (DA7281 detected)", chip_id);
-
-    /* Read chip revision for informational purposes */
-    uint8_t revision = 0;
-    err = da7281_read_chip_revision(device, &revision);
-    if (err == DA7281_OK) {
-        DA7281_LOG_INFO("Chip revision: 0x%02X", revision);
-    } else {
-        DA7281_LOG_WARNING("Failed to read chip revision (non-critical)");
-    }
+    DA7281_LOG_INFO("Chip revision verified: 0x%02X (DA7281 detected)", chip_rev);
 
     /* Set motor type to LRA */
     DA7281_LOG_DEBUG("Configuring motor type as LRA...");
@@ -561,24 +552,12 @@ da7281_error_t da7281_run_selftest(da7281_device_t *device, bool *passed)
 }
 
 /**
- * @brief Read chip ID
- */
-da7281_error_t da7281_read_chip_id(da7281_device_t *device, uint8_t *chip_id)
-{
-    DA7281_CHECK_NULL(device);
-    DA7281_CHECK_NULL(chip_id);
-
-    return da7281_read_register(device, DA7281_REG_CHIP_ID, chip_id);
-}
-
-/**
  * @brief Read chip revision
  */
-da7281_error_t da7281_read_chip_revision(da7281_device_t *device,
-                                          uint8_t *revision)
+da7281_error_t da7281_read_chip_revision(da7281_device_t *device, uint8_t *chip_rev)
 {
     DA7281_CHECK_NULL(device);
-    DA7281_CHECK_NULL(revision);
+    DA7281_CHECK_NULL(chip_rev);
 
-    return da7281_read_register(device, DA7281_REG_CHIP_REV, revision);
+    return da7281_read_register(device, DA7281_REG_CHIP_REV, chip_rev);
 }

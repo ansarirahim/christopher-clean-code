@@ -58,9 +58,12 @@ da7281_error_t da7281_init(da7281_device_t *device)
     }
 
     DA7281_LOG_DEBUG("Chip revision: 0x%02X", chip_rev);
-    if (chip_rev != DA7281_CHIP_REV_VALUE) {
-        DA7281_LOG_ERROR("Chip revision mismatch: expected 0x%02X, got 0x%02X",
-                         DA7281_CHIP_REV_VALUE, chip_rev);
+    if ((chip_rev != DA7281_CHIP_REV_VALUE) &&
+        (chip_rev != DA7281_CHIP_REV_LEGACY_VALUE)) {
+        DA7281_LOG_ERROR("Chip revision mismatch: expected 0x%02X or 0x%02X, got 0x%02X",
+                         DA7281_CHIP_REV_VALUE,
+                         DA7281_CHIP_REV_LEGACY_VALUE,
+                         chip_rev);
         DA7281_LOG_ERROR("Possible causes: wrong I2C address, hardware fault, or not a DA7281");
         return DA7281_ERROR_CHIP_REV_MISMATCH;
     }

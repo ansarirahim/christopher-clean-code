@@ -19,7 +19,7 @@ extern "C" {
  * Register Addresses (8-bit)
  * ======================================================================== */
 
-/** Chip revision register (Read-only, datasheet Table 20, expected 0xCA) */
+/** Chip revision register (Read-only, datasheet Table 20, expected 0xCA/legacy 0xBA) */
 #define DA7281_REG_CHIP_REV             (0x00U)
 
 /** Top configuration register 1 */
@@ -209,6 +209,8 @@ extern "C" {
 
 /* Expected chip revision value (DA7281 Datasheet v3.1, Table 20) */
 #define DA7281_CHIP_REV_VALUE           (0xCAU)
+/* Legacy chip revision value observed on early boards */
+#define DA7281_CHIP_REV_LEGACY_VALUE    (0xBAU)
 
 /* Self-test result bits */
 #define DA7281_SELFTEST_RESULT_PASS     (0x01U)

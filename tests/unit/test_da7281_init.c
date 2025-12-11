@@ -34,6 +34,33 @@ void tearDown(void)
     /* Cleanup after each test */
 }
 
+static void run_init_success_with_revision(uint8_t chip_rev_value)
+{
+    /* Reset device state because we test multiple revisions in one Unity test */
+    test_device.twi_instance = 0;
+    test_device.i2c_address = 0x4A;
+    test_device.gpio_enable_pin = 12;
+    test_device.initialized = false;
+    test_device.powered_on = true;
+    test_device.mode = DA7281_MODE_INACTIVE;
+    test_device.twi_handle = NULL;
+
+    /* Setup expectations for chip revision read */
+    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_REV, chip_rev_value};
+    nrf_drv_twi_tx_ExpectAndReturn(&mock_twi_instance, 0x4A,
+                                     &chip_id_data[0], 1, true, NRF_SUCCESS);
+    nrf_drv_twi_rx_ExpectAndReturn(&mock_twi_instance, 0x4A,
+                                     &chip_id_data[1], 1, NRF_SUCCESS);
+
+    /* Execute */
+    da7281_error_t err = da7281_init(&test_device);
+
+    /* Verify */
+    TEST_ASSERT_EQUAL(DA7281_OK, err);
+    TEST_ASSERT_TRUE(test_device.initialized);
+    TEST_ASSERT_EQUAL(DA7281_MODE_INACTIVE, test_device.mode);
+}
+
 /* ========================================================================
  * Power Control Tests
  * ======================================================================== */
@@ -98,29 +125,9 @@ void test_da7281_power_off_success(void)
 
 void test_da7281_init_success(void)
 {
-    /* Setup */
-    test_device.powered_on = true;
-
-    /* Setup expectations for chip revision read */
-    uint8_t chip_id_data[2] = {DA7281_REG_CHIP_REV, DA7281_CHIP_REV_VALUE};
-    nrf_drv_twi_tx_ExpectAndReturn(&mock_twi_instance, 0x4A, 
-                                     &chip_id_data[0], 1, true, NRF_SUCCESS);
-    nrf_drv_twi_rx_ExpectAndReturn(&mock_twi_instance, 0x4A,
-                                     &chip_id_data[1], 1, NRF_SUCCESS);
-
-    /* Setup expectations for motor type configuration */
-    /* ... (read-modify-write sequence) */
-
-    /* Setup expectations for operation mode set */
-    /* ... (read-modify-write sequence) */
-
-    /* Execute */
-    da7281_error_t err = da7281_init(&test_device);
-
-    /* Verify */
-    TEST_ASSERT_EQUAL(DA7281_OK, err);
-    TEST_ASSERT_TRUE(test_device.initialized);
-    TEST_ASSERT_EQUAL(DA7281_MODE_INACTIVE, test_device.mode);
+    /* Validate both current and legacy revisions succeed */
+    run_init_success_with_revision(DA7281_CHIP_REV_VALUE);
+    run_init_success_with_revision(DA7281_CHIP_REV_LEGACY_VALUE);
 }
 
 void test_da7281_init_null_pointer(void)

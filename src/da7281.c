@@ -51,11 +51,13 @@ da7281_error_t da7281_init(da7281_device_t *device)
 
     /* Read and verify chip ID */
     err = da7281_read_chip_id(device, &chip_id);
+    DA7281_LOG_DEBUG("Error code: %d", err);
     if (err != DA7281_OK) {
         DA7281_LOG_ERROR("Failed to read chip ID - I2C communication error");
         return err;
     }
 
+    DA7281_LOG_DEBUG("Chip ID: 0x%02X", chip_id);
     if (chip_id != DA7281_CHIP_ID_VALUE) {
         DA7281_LOG_ERROR("Chip ID mismatch: expected 0x%02X, got 0x%02X",
                          DA7281_CHIP_ID_VALUE, chip_id);

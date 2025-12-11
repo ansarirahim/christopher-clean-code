@@ -192,8 +192,17 @@ extern "C" {
 #define DA7281_LOG_INFO(...)    SEGGER_RTT_printf(0, "[INF] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
 #define DA7281_LOG_DEBUG(...)   SEGGER_RTT_printf(0, "[DBG] DA7281: " __VA_ARGS__); SEGGER_RTT_printf(0, "\n")
 
+#elif (DA7281_LOG_BACKEND == 3)
+
+/* Forward to application logger (expects APP_LOG_* to be defined) */
+#include "app_log.h"
+#define DA7281_LOG_ERROR(...)   APP_LOG_ERROR(__VA_ARGS__)
+#define DA7281_LOG_WARNING(...) APP_LOG_WARN(__VA_ARGS__)
+#define DA7281_LOG_INFO(...)    APP_LOG_INFO(__VA_ARGS__)
+#define DA7281_LOG_DEBUG(...)   APP_LOG_DEBUG(__VA_ARGS__)
+
 #else
-#error "Invalid DA7281_LOG_BACKEND value. Must be 0-2."
+#error "Invalid DA7281_LOG_BACKEND value. Must be 0-3."
 #endif /* DA7281_LOG_BACKEND */
 
 #ifdef __cplusplus

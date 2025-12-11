@@ -136,15 +136,15 @@ static da7281_error_t da7281_i2c_init_twi(uint8_t instance)
         .clear_bus_init = false
     };
 
-    DA7281_LOG_DEBUG("Initializing TWI%d: SCL=P0.%d, SDA=P0.%d, freq=400kHz",
-                     instance, twi_config.scl, twi_config.sda);
+    DA7281_LOG_DEBUG("Initializing TWI%d: SCL=P0.%lu, SDA=P0.%lu, freq=400kHz",
+                     instance, (unsigned long)twi_config.scl, (unsigned long)twi_config.sda);
 
     ret_code_t err_code = nrf_drv_twi_init(&s_twi_instances[instance],
                                             &twi_config,
                                             NULL,
                                             NULL);
     if (err_code != NRF_SUCCESS) {
-        DA7281_LOG_ERROR("TWI%d init failed with error code: 0x%08X", instance, err_code);
+        DA7281_LOG_ERROR("TWI%d init failed with error code: 0x%08lX", instance, (unsigned long)err_code);
         return DA7281_ERROR_I2C_WRITE;
     }
 
@@ -264,8 +264,8 @@ da7281_error_t da7281_write_register(da7281_device_t *device,
     xSemaphoreGive(s_i2c_mutex[device->twi_instance]);
 
     if (ret != NRF_SUCCESS) {
-        DA7281_LOG_ERROR("I2C write failed: TWI%d, addr=0x%02X, reg=0x%02X, val=0x%02X, err=0x%08X",
-                         device->twi_instance, device->i2c_address, reg_addr, value, ret);
+        DA7281_LOG_ERROR("I2C write failed: TWI%d, addr=0x%02X, reg=0x%02X, val=0x%02X, err=0x%08lX",
+                         device->twi_instance, device->i2c_address, reg_addr, value, (unsigned long)ret);
         return DA7281_ERROR_I2C_WRITE;
     }
 
@@ -347,8 +347,8 @@ da7281_error_t da7281_read_register(da7281_device_t *device,
     xSemaphoreGive(s_i2c_mutex[device->twi_instance]);
 
     if (ret != NRF_SUCCESS) {
-        DA7281_LOG_ERROR("I2C read failed: TWI%d, addr=0x%02X, reg=0x%02X, err=0x%08X",
-                         device->twi_instance, device->i2c_address, reg_addr, ret);
+        DA7281_LOG_ERROR("I2C read failed: TWI%d, addr=0x%02X, reg=0x%02X, err=0x%08lX",
+                         device->twi_instance, device->i2c_address, reg_addr, (unsigned long)ret);
         return DA7281_ERROR_I2C_READ;
     }
 

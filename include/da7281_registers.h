@@ -53,8 +53,8 @@ extern "C" {
 #define DA7281_REG_ACTUATOR_TYPE        (0x0BU)
 
 /** Calib V2I factor register */
-#define DA7281_REG_CALIB_V2I_H          (0x0CU)
-#define DA7281_REG_CALIB_V2I_L          (0x0DU)
+#define DA7281_REG_CALIB_V2I_H          (0x0FU)
+#define DA7281_REG_CALIB_V2I_L          (0x10U)
 
 /** Top control register 3 */
 #define DA7281_REG_TOP_CTL3             (0x0EU)
@@ -83,16 +83,16 @@ extern "C" {
 #define DA7281_REG_GEN_CFG6             (0x95U)
 
 /** LRA resonance period register (high byte) */
-#define DA7281_REG_LRA_PER_H            (0x96U)
+#define DA7281_REG_LRA_PER_H            (0x0AU)
 
 /** LRA resonance period register (low byte) */
-#define DA7281_REG_LRA_PER_L            (0x97U)
+#define DA7281_REG_LRA_PER_L            (0x0BU)
 
 /** Voltage to current factor register (high byte) */
-#define DA7281_REG_V2I_FACTOR_H         (0x98U)
+#define DA7281_REG_V2I_FACTOR_H         (0x0FU)
 
 /** Voltage to current factor register (low byte) */
-#define DA7281_REG_V2I_FACTOR_L         (0x99U)
+#define DA7281_REG_V2I_FACTOR_L         (0x10U)
 
 /** Frequency tracking configuration register 2 */
 #define DA7281_REG_FREQ_TRACK_CFG2      (0x9AU)
@@ -140,7 +140,7 @@ extern "C" {
 #define DA7281_REG_LRA_AUTO_RES_CFG2    (0xA8U)
 
 /** Override amplitude register */
-#define DA7281_REG_OVERRIDE_AMP         (0xA9U)
+#define DA7281_REG_OVERRIDE_AMP         (0x23U)
 
 /* ========================================================================
  * Register Bit Field Definitions
@@ -160,10 +160,10 @@ extern "C" {
 #define DA7281_TOP_CFG1_AMP_EN          (0x08U)
 
 /* TOP_CFG1 - Frequency Tracking Enable */
-#define DA7281_TOP_CFG1_FREQ_TRACK_EN   (0x10U)
+#define DA7281_TOP_CFG1_FREQ_TRACK_EN   (0x08U)
 
 /* TOP_CFG1 - Acceleration Enable */
-#define DA7281_TOP_CFG1_ACCEL_EN        (0x20U)
+#define DA7281_TOP_CFG1_ACCEL_EN        (0x04U)
 
 /* TOP_CFG1 - Rapid Stop Enable */
 #define DA7281_TOP_CFG1_RAPID_STOP_EN   (0x40U)
@@ -187,16 +187,16 @@ extern "C" {
 #define DA7281_GEN_CFG2_OVERRIDE_EN     (0x01U)
 
 /* ACTUATOR_NOMMAX (0x9B) - Voltage scaling factor */
-#define DA7281_ACTUATOR_NOMMAX_SCALE    (23.4375F)  /**< mV per LSB */
+#define DA7281_ACTUATOR_NOMMAX_SCALE    (23.4F)  /**< mV per LSB */
 
 /* ACTUATOR_ABSMAX (0x9C) - Voltage scaling factor */
-#define DA7281_ACTUATOR_ABSMAX_SCALE    (48.75F)    /**< mV per LSB */
+#define DA7281_ACTUATOR_ABSMAX_SCALE    (23.4F)    /**< mV per LSB */
 
 /* ACTUATOR_IMAX (0x9D) - Current scaling factor */
 #define DA7281_ACTUATOR_IMAX_SCALE      (7.8125F)   /**< mA per LSB */
 
 /* LRA_PER - Period calculation constant */
-#define DA7281_LRA_PER_TIME_SCALE       (1.024E-6F) /**< seconds per LSB */
+#define DA7281_LRA_PER_TIME_SCALE       (1.33332e-6F) /**< seconds per LSB */
 
 /* V2I_FACTOR - Scaling constant */
 #define DA7281_V2I_FACTOR_SCALE         (1.5F)      /**< Multiplier */

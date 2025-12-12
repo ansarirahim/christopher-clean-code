@@ -59,28 +59,8 @@ extern "C" {
 /** Top control register 3 */
 #define DA7281_REG_TOP_CTL3             (0x0EU)
 
-/** SNP memory registers (128 bytes: 0x10 - 0x8F) */
-#define DA7281_REG_SNP_MEM_START        (0x10U)
-#define DA7281_REG_SNP_MEM_END          (0x8FU)
-#define DA7281_SNP_MEM_SIZE             (128U)
-
-/** General configuration register 1 */
-#define DA7281_REG_GEN_CFG1             (0x90U)
-
 /** General configuration register 2 */
 #define DA7281_REG_GEN_CFG2             (0x91U)
-
-/** General configuration register 3 */
-#define DA7281_REG_GEN_CFG3             (0x92U)
-
-/** General configuration register 4 */
-#define DA7281_REG_GEN_CFG4             (0x93U)
-
-/** General configuration register 5 */
-#define DA7281_REG_GEN_CFG5             (0x94U)
-
-/** General configuration register 6 */
-#define DA7281_REG_GEN_CFG6             (0x95U)
 
 /** LRA resonance period register (high byte) */
 #define DA7281_REG_LRA_PER_H            (0x0AU)
@@ -94,9 +74,6 @@ extern "C" {
 /** Voltage to current factor register (low byte) */
 #define DA7281_REG_V2I_FACTOR_L         (0x10U)
 
-/** Frequency tracking configuration register 2 */
-#define DA7281_REG_FREQ_TRACK_CFG2      (0x9AU)
-
 /** Actuator nominal max voltage register */
 #define DA7281_REG_ACTUATOR_NOMMAX      (0x9BU)
 
@@ -106,38 +83,6 @@ extern "C" {
 /** Actuator max current register */
 #define DA7281_REG_ACTUATOR_IMAX        (0x9DU)
 
-/** Boost configuration register */
-#define DA7281_REG_BOOST_CFG            (0x9EU)
-
-/** Boost option register */
-#define DA7281_REG_BOOST_OPTION         (0x9FU)
-
-/** Sequencer configuration register 1 */
-#define DA7281_REG_SEQ_CFG1             (0xA0U)
-
-/** Sequencer configuration register 2 */
-#define DA7281_REG_SEQ_CFG2             (0xA1U)
-
-/** Sequencer control register */
-#define DA7281_REG_SEQ_CTL              (0xA2U)
-
-/** GPIO configuration register 1 */
-#define DA7281_REG_GPIO_CFG1            (0xA3U)
-
-/** GPIO configuration register 2 */
-#define DA7281_REG_GPIO_CFG2            (0xA4U)
-
-/** GPIO configuration register 3 */
-#define DA7281_REG_GPIO_CFG3            (0xA5U)
-
-/** Polarity configuration register */
-#define DA7281_REG_POLARITY_CFG         (0xA6U)
-
-/** LRA auto-resonance configuration register 1 */
-#define DA7281_REG_LRA_AUTO_RES_CFG1    (0xA7U)
-
-/** LRA auto-resonance configuration register 2 */
-#define DA7281_REG_LRA_AUTO_RES_CFG2    (0xA8U)
 
 /** Override amplitude register */
 #define DA7281_REG_OVERRIDE_AMP         (0x23U)

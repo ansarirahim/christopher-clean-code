@@ -356,13 +356,12 @@ da7281_error_t da7281_set_operation_mode(da7281_device_t *device,
     DA7281_LOG_DEBUG("Changing operation mode from %s to %s",
                      mode_names[device->mode], mode_names[mode]);
 
-    /* DA7281 Datasheet Table 21, Page 56: OP_MODE is bits [2:0] of TOP_CFG1 */
-    /* Shift mode value to correct bit position before writing */
-    uint8_t mode_value = ((uint8_t)mode << DA7281_TOP_CFG1_OP_MODE_SHIFT) & DA7281_TOP_CFG1_OP_MODE_MASK;
+    /* OP_MODE is bits [2:0] of TOP_CTL1 */
+    uint8_t mode_value = ((uint8_t)mode << DA7281_TOP_CTL1_OP_MODE_SHIFT) & DA7281_TOP_CTL1_OP_MODE_MASK;
 
     da7281_error_t err = da7281_modify_register(device,
-                                                  DA7281_REG_TOP_CFG1,
-                                                  DA7281_TOP_CFG1_OP_MODE_MASK,
+                                                  DA7281_REG_TOP_CTL1,
+                                                  DA7281_TOP_CTL1_OP_MODE_MASK,
                                                   mode_value);
     if (err != DA7281_OK) {
         DA7281_LOG_ERROR("Failed to set operation mode to %s", mode_names[mode]);
@@ -370,10 +369,10 @@ da7281_error_t da7281_set_operation_mode(da7281_device_t *device,
     }
 
     /* Verify mode was set correctly */
-    uint8_t top_cfg1 = 0;
-    err = da7281_read_register(device, DA7281_REG_TOP_CFG1, &top_cfg1);
+    uint8_t top_ctl1 = 0;
+    err = da7281_read_register(device, DA7281_REG_TOP_CTL1, &top_ctl1);
     if (err == DA7281_OK) {
-        uint8_t actual_mode = (top_cfg1 & DA7281_TOP_CFG1_OP_MODE_MASK) >> DA7281_TOP_CFG1_OP_MODE_SHIFT;
+        uint8_t actual_mode = (top_ctl1 & DA7281_TOP_CTL1_OP_MODE_MASK) >> DA7281_TOP_CTL1_OP_MODE_SHIFT;
         if (actual_mode != (uint8_t)mode) {
             DA7281_LOG_WARNING("Operation mode verification failed: expected %d, got %d",
                                mode, actual_mode);
@@ -397,13 +396,13 @@ da7281_error_t da7281_get_operation_mode(da7281_device_t *device,
     DA7281_CHECK_NULL(mode);
 
     uint8_t reg_value = 0;
-    da7281_error_t err = da7281_read_register(device, DA7281_REG_TOP_CFG1,
+    da7281_error_t err = da7281_read_register(device, DA7281_REG_TOP_CTL1,
                                                 &reg_value);
     if (err != DA7281_OK) {
         return err;
     }
 
-    *mode = (da7281_operation_mode_t)((reg_value & DA7281_TOP_CFG1_OP_MODE_MASK) >> DA7281_TOP_CFG1_OP_MODE_SHIFT);
+    *mode = (da7281_operation_mode_t)((reg_value & DA7281_TOP_CTL1_OP_MODE_MASK) >> DA7281_TOP_CTL1_OP_MODE_SHIFT);
 
     return DA7281_OK;
 }

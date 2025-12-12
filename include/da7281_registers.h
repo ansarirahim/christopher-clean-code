@@ -34,7 +34,7 @@ extern "C" {
 /** Top configuration register 4 */
 #define DA7281_REG_TOP_CFG4             (0x16U)
 
-/** Top control register 1 */
+/** Top control register 1 (operation mode bits [2:0]) */
 #define DA7281_REG_TOP_CTL1             (0x22U)
 
 /** Top control register 2 */
@@ -91,9 +91,9 @@ extern "C" {
  * Register Bit Field Definitions
  * ======================================================================== */
 
-/* TOP_CFG1 (0x13) - Operation Mode Control */
-#define DA7281_TOP_CFG1_OP_MODE_MASK    (0x07U)
-#define DA7281_TOP_CFG1_OP_MODE_SHIFT   (0U)
+/* TOP_CTL1 (0x22) - Operation Mode Control */
+#define DA7281_TOP_CTL1_OP_MODE_MASK    (0x07U)
+#define DA7281_TOP_CTL1_OP_MODE_SHIFT   (0U)
 #define DA7281_OP_MODE_INACTIVE         (0x00U)
 #define DA7281_OP_MODE_DRO              (0x01U)  /**< Direct Register Override */
 #define DA7281_OP_MODE_PWM              (0x02U)  /**< PWM Input Mode */

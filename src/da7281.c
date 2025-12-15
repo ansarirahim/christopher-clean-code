@@ -70,26 +70,33 @@ da7281_error_t da7281_init(da7281_device_t *device)
 
     DA7281_LOG_INFO("Chip revision verified: 0x%02X (DA7281 detected)", chip_rev);
 
-    /* Set motor type to LRA */
-    DA7281_LOG_DEBUG("Configuring motor type as LRA...");
-    err = da7281_modify_register(device,
-                                   DA7281_REG_TOP_CFG2,
-                                   DA7281_TOP_CFG2_MOTOR_TYPE_MASK,
-                                   DA7281_MOTOR_TYPE_LRA);
+    /* Clear any pending fault bits by writing 1s to IRQ_EVENT1 */
+    DA7281_LOG_DEBUG("Clearing fault bits...");
+    err = da7281_write_register(device, DA7281_REG_IRQ_EVENT1, 0xFFU);
     if (err != DA7281_OK) {
-        DA7281_LOG_ERROR("Failed to set motor type to LRA");
+        DA7281_LOG_WARNING("Failed to clear fault bits");
+    }
+
+    /* Set actuator type to LRA in TOP_CFG1 bit 5 */
+    DA7281_LOG_DEBUG("Configuring actuator type as LRA...");
+    err = da7281_modify_register(device,
+                                   DA7281_REG_TOP_CFG1,
+                                   DA7281_TOP_CFG1_ACTUATOR_TYPE,
+                                   DA7281_ACTUATOR_TYPE_LRA);
+    if (err != DA7281_OK) {
+        DA7281_LOG_ERROR("Failed to set actuator type to LRA");
         return err;
     }
 
-    /* Verify motor type was set correctly */
-    uint8_t top_cfg2 = 0;
-    err = da7281_read_register(device, DA7281_REG_TOP_CFG2, &top_cfg2);
+    /* Verify actuator type was set correctly */
+    uint8_t top_cfg1 = 0;
+    err = da7281_read_register(device, DA7281_REG_TOP_CFG1, &top_cfg1);
     if (err == DA7281_OK) {
-        uint8_t motor_type = top_cfg2 & DA7281_TOP_CFG2_MOTOR_TYPE_MASK;
-        if (motor_type == DA7281_MOTOR_TYPE_LRA) {
-            DA7281_LOG_INFO("Motor type verified: LRA");
+        uint8_t actuator_type = top_cfg1 & DA7281_TOP_CFG1_ACTUATOR_TYPE;
+        if (actuator_type == DA7281_ACTUATOR_TYPE_LRA) {
+            DA7281_LOG_INFO("Actuator type verified: LRA");
         } else {
-            DA7281_LOG_WARNING("Motor type verification failed: expected LRA, got 0x%02X", motor_type);
+            DA7281_LOG_WARNING("Actuator type verification failed: expected LRA, got 0x%02X", actuator_type);
         }
     }
 
@@ -148,33 +155,33 @@ da7281_error_t da7281_deinit(da7281_device_t *device)
  * Calculates and programs all LRA-specific registers based on motor specifications.
  * This function must be called after initialization and before starting haptic playback.
  *
- * Register Calculations:
+ * Register Calculations (per DA7281 Datasheet v3.1):
  *
  * 1. LRA_PER (Period Register):
- *    Formula: LRA_PER = T / 1.024us, where T = 1 / f_resonant
+ *    Formula: LRA_PER = T / 1.33332e-9, where T = 1 / f_resonant
  *    Example: For 170Hz LRA:
- *      T = 1/170 = 0.00588s = 5882us
- *      LRA_PER = 5882 / 1.024 = 5744 = 0x1670
+ *      T = 1/170 = 0.00588s
+ *      LRA_PER = 0.00588 / 1.33332e-9 = 4412287
  *
  * 2. V2I_FACTOR (Voltage-to-Current Factor):
- *    Formula: V2I = Z * 1.5, where Z = actuator impedance
- *    Example: For 6.75 ohm impedance:
- *      V2I = 6.75 * 1.5 = 10.125 ~ 10 = 0x000A
+ *    Formula: V2I = (Z * (IMAX + 4)) / 1.6104
+ *    Example: For Z=6.75 ohm, IMAX=350mA:
+ *      V2I = (6.75 * (350/7.2 + 4)) / 1.6104 = ~230
  *
  * 3. ACTUATOR_NOMMAX (Nominal Maximum Voltage):
- *    Formula: NOMMAX = (V_rms * 1000) / 23.4375
+ *    Formula: NOMMAX = (V_rms * 1000) / 23.4
  *    Example: For 2.5V RMS:
- *      NOMMAX = (2.5 * 1000) / 23.4375 = 106.67 ~ 107 = 0x6B
+ *      NOMMAX = (2.5 * 1000) / 23.4 = 107
  *
  * 4. ACTUATOR_ABSMAX (Absolute Maximum Voltage):
- *    Formula: ABSMAX = (V_peak * 1000) / 48.75
+ *    Formula: ABSMAX = (V_peak * 1000) / 23.4
  *    Example: For 3.5V peak:
- *      ABSMAX = (3.5 * 1000) / 48.75 = 71.79 ~ 72 = 0x48
+ *      ABSMAX = (3.5 * 1000) / 23.4 = 150
  *
  * 5. ACTUATOR_IMAX (Maximum Current):
- *    Formula: IMAX = I_ma / 7.8125
+ *    Formula: IMAX = (I_mA - 28.6) / 7.2
  *    Example: For 350mA:
- *      IMAX = 350 / 7.8125 = 44.8 ~ 45 = 0x2D
+ *      IMAX = (350 - 28.6) / 7.2 = 44.6 ~ 45
  *
  * @param device Pointer to initialized device handle
  * @param config Pointer to LRA configuration structure
@@ -235,8 +242,10 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 2. Configure V2I Factor ===== */
     /* V2I factor converts voltage to current based on actuator impedance */
-    /* DA7281 Datasheet Section 9.4.6: V2I_FACTOR = Z * 1.5 */
-    float v2i_float = config->impedance_ohm * DA7281_V2I_FACTOR_SCALE;
+    /* DA7281 Datasheet: V2I_FACTOR = (Z * (IMAX_reg + 4)) / 1.6104 */
+    /* First calculate IMAX register value for the formula */
+    float imax_reg = ((float)config->max_current_ma - DA7281_ACTUATOR_IMAX_OFFSET) / DA7281_ACTUATOR_IMAX_SCALE;
+    float v2i_float = (config->impedance_ohm * (imax_reg + DA7281_V2I_FACTOR_IMAX_OFFSET)) / DA7281_V2I_FACTOR_DIVISOR;
 
     /* Round to nearest integer and clamp to valid 16-bit range (1-65535) */
     uint16_t v2i_factor = (uint16_t)roundf(v2i_float);
@@ -245,8 +254,8 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
         DA7281_LOG_WARNING("V2I_FACTOR calculated as 0, clamped to 1");
     }
 
-    DA7281_LOG_DEBUG("V2I calculation: Z=%.2f ohm, V2I=0x%04X (rounded from %.2f)",
-                     config->impedance_ohm, v2i_factor, v2i_float);
+    DA7281_LOG_DEBUG("V2I calculation: Z=%.2f ohm, IMAX_reg=%.2f, V2I=0x%04X (rounded from %.2f)",
+                     config->impedance_ohm, imax_reg, v2i_factor, v2i_float);
 
     /* Write V2I factor (16-bit register, high byte first) */
     err = da7281_write_register(device, DA7281_REG_V2I_FACTOR_H,
@@ -302,11 +311,17 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 5. Configure Maximum Current ===== */
     /* Current limit for actuator protection */
-    uint8_t imax = (uint8_t)((float)config->max_current_ma /
-                              DA7281_ACTUATOR_IMAX_SCALE);
+    /* DA7281 Datasheet: IMAX = (I_mA - 28.6) / 7.2 */
+    float imax_float = ((float)config->max_current_ma - DA7281_ACTUATOR_IMAX_OFFSET) /
+                       DA7281_ACTUATOR_IMAX_SCALE;
+    uint8_t imax = (uint8_t)roundf(imax_float);
+    if (imax_float < 0) {
+        imax = 0;
+        DA7281_LOG_WARNING("IMAX calculated as negative, clamped to 0");
+    }
 
-    DA7281_LOG_DEBUG("IMAX calculation: I=%umA, IMAX=0x%02X",
-                     config->max_current_ma, imax);
+    DA7281_LOG_DEBUG("IMAX calculation: I=%umA, IMAX=0x%02X (rounded from %.2f)",
+                     config->max_current_ma, imax, imax_float);
 
     err = da7281_write_register(device, DA7281_REG_ACTUATOR_IMAX, imax);
     if (err != DA7281_OK) {
@@ -409,23 +424,22 @@ da7281_error_t da7281_get_operation_mode(da7281_device_t *device,
 
 /**
  * @brief Set override amplitude
+ *
+ * Sets the amplitude for Direct Register Override (DRO) mode.
+ * The device should be in DRO mode (set via da7281_set_operation_mode)
+ * before calling this function.
+ *
+ * @param device Pointer to device handle
+ * @param amplitude Amplitude value (0-255, 0=off, 255=max)
+ * @return DA7281_OK on success, error code otherwise
  */
 da7281_error_t da7281_set_override_amplitude(da7281_device_t *device,
                                                uint8_t amplitude)
 {
     DA7281_CHECK_DEVICE(device);
 
-    /* Enable override mode if not already enabled */
-    da7281_error_t err = da7281_modify_register(device,
-                                                  DA7281_REG_GEN_CFG2,
-                                                  DA7281_GEN_CFG2_OVERRIDE_EN,
-                                                  DA7281_GEN_CFG2_OVERRIDE_EN);
-    if (err != DA7281_OK) {
-        return err;
-    }
-
-    /* Set amplitude */
-    err = da7281_write_register(device, DA7281_REG_OVERRIDE_AMP, amplitude);
+    /* Write override value to TOP_CTL2 */
+    da7281_error_t err = da7281_write_register(device, DA7281_REG_TOP_CTL2, amplitude);
     if (err != DA7281_OK) {
         return err;
     }

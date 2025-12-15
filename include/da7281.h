@@ -67,12 +67,11 @@ typedef enum {
 } da7281_operation_mode_t;
 
 /**
- * @brief DA7281 motor types
+ * @brief DA7281 actuator types
  */
 typedef enum {
-    DA7281_MOTOR_LRA = DA7281_MOTOR_TYPE_LRA,           /**< Linear Resonant Actuator */
-    DA7281_MOTOR_ERM_BAR = DA7281_MOTOR_TYPE_ERM_BAR,   /**< ERM with back-EMF */
-    DA7281_MOTOR_ERM_COIN = DA7281_MOTOR_TYPE_ERM_COIN  /**< ERM coin type */
+    DA7281_MOTOR_LRA = 1,   /**< Linear Resonant Actuator (bit 5 = 1) */
+    DA7281_MOTOR_ERM = 0    /**< Eccentric Rotating Mass (bit 5 = 0) */
 } da7281_motor_type_t;
 
 /**

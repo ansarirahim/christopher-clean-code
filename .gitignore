@@ -59,3 +59,5 @@ __pycache__/
 # Local tracking (not for GitHub)
 .local/
 
+# CodeQL artifacts
+_codeql_detected_source_root

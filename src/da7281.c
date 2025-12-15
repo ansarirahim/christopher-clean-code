@@ -161,12 +161,13 @@ da7281_error_t da7281_deinit(da7281_device_t *device)
  *    Formula: LRA_PER = T / 1.33332e-9, where T = 1 / f_resonant
  *    Example: For 170Hz LRA:
  *      T = 1/170 = 0.00588s
- *      LRA_PER = 0.00588 / 1.33332e-9 = 4412287
+ *      LRA_PER = 0.00588 / 1.33332e-9 = 4412295
  *
  * 2. V2I_FACTOR (Voltage-to-Current Factor):
- *    Formula: V2I = (Z * (IMAX + 4)) / 1.6104
+ *    Formula: V2I = (Z * (IMAX_reg + 4)) / 1.6104
  *    Example: For Z=6.75 ohm, IMAX=350mA:
- *      V2I = (6.75 * (350/7.2 + 4)) / 1.6104 = ~230
+ *      IMAX_reg = (350 - 28.6) / 7.2 = 44.6
+ *      V2I = (6.75 * (44.6 + 4)) / 1.6104 = 204
  *
  * 3. ACTUATOR_NOMMAX (Nominal Maximum Voltage):
  *    Formula: NOMMAX = (V_rms * 1000) / 23.4
@@ -208,7 +209,7 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 1. Configure LRA Period ===== */
     /* Calculate period in seconds, then convert to register value */
-    /* DA7281 Datasheet Section 9.4.5: LRA_PER = T / 1.024us */
+    /* DA7281 Datasheet: LRA_PER = T / 1.33332e-9 */
     float period_seconds = 1.0F / (float)config->resonant_freq_hz;
     float lra_per_float = period_seconds / DA7281_LRA_PER_TIME_SCALE;
 

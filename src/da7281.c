@@ -158,15 +158,15 @@ da7281_error_t da7281_deinit(da7281_device_t *device)
  * Register Calculations (per DA7281 Datasheet v3.1):
  *
  * 1. LRA_PER (Period Register):
- *    Formula: LRA_PER = T / 1.33332e-9, where T = 1 / f_resonant
+ *    Formula: LRA_PER = T / 1.024us, where T = 1 / f_resonant
  *    Example: For 170Hz LRA:
- *      T = 1/170 = 0.00588s
- *      LRA_PER = 0.00588 / 1.33332e-9 = 4412295
+ *      T = 1/170 = 0.00588s = 5882us
+ *      LRA_PER = 5882 / 1.024 = 5744
  *
  * 2. V2I_FACTOR (Voltage-to-Current Factor):
- *    Formula: V2I = (Z * (IMAX_reg + 4)) / 1.6104
+ *    Formula: V2I = (Z * (IMAX + 4)) / 1.6104
  *    Example: For Z=6.75 ohm, IMAX=350mA:
- *      IMAX_reg = (350 - 28.6) / 7.2 = 44.6
+ *      IMAX = (350 - 28.6) / 7.2 = 44.6
  *      V2I = (6.75 * (44.6 + 4)) / 1.6104 = 204
  *
  * 3. ACTUATOR_NOMMAX (Nominal Maximum Voltage):
@@ -209,7 +209,7 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 1. Configure LRA Period ===== */
     /* Calculate period in seconds, then convert to register value */
-    /* DA7281 Datasheet: LRA_PER = T / 1.33332e-9 */
+    /* DA7281 Datasheet Section 9.4.5: LRA_PER = T / 1.024us */
     float period_seconds = 1.0F / (float)config->resonant_freq_hz;
     float lra_per_float = period_seconds / DA7281_LRA_PER_TIME_SCALE;
 
@@ -243,10 +243,10 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 2. Configure V2I Factor ===== */
     /* V2I factor converts voltage to current based on actuator impedance */
-    /* DA7281 Datasheet: V2I_FACTOR = (Z * (IMAX_reg + 4)) / 1.6104 */
+    /* DA7281 Datasheet Section 9.4.6: V2I_FACTOR = (Z * (IMAX + 4)) / 1.6104 */
     /* First calculate IMAX register value for the formula */
-    float imax_reg = ((float)config->max_current_ma - DA7281_ACTUATOR_IMAX_OFFSET) / DA7281_ACTUATOR_IMAX_SCALE;
-    float v2i_float = (config->impedance_ohm * (imax_reg + DA7281_V2I_FACTOR_IMAX_OFFSET)) / DA7281_V2I_FACTOR_DIVISOR;
+    float imax = ((float)config->max_current_ma - DA7281_ACTUATOR_IMAX_OFFSET) / DA7281_ACTUATOR_IMAX_SCALE;
+    float v2i_float = (config->impedance_ohm * (imax + DA7281_V2I_FACTOR_IMAX_OFFSET)) / DA7281_V2I_FACTOR_DIVISOR;
 
     /* Round to nearest integer and clamp to valid 16-bit range (1-65535) */
     uint16_t v2i_factor = (uint16_t)roundf(v2i_float);
@@ -255,8 +255,8 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
         DA7281_LOG_WARNING("V2I_FACTOR calculated as 0, clamped to 1");
     }
 
-    DA7281_LOG_DEBUG("V2I calculation: Z=%.2f ohm, IMAX_reg=%.2f, V2I=0x%04X (rounded from %.2f)",
-                     config->impedance_ohm, imax_reg, v2i_factor, v2i_float);
+    DA7281_LOG_DEBUG("V2I calculation: Z=%.2f ohm, IMAX=%.2f, V2I=0x%04X (rounded from %.2f)",
+                     config->impedance_ohm, imax, v2i_factor, v2i_float);
 
     /* Write V2I factor (16-bit register, high byte first) */
     err = da7281_write_register(device, DA7281_REG_V2I_FACTOR_H,

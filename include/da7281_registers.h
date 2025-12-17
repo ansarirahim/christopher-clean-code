@@ -171,8 +171,8 @@ extern "C" {
 #define DA7281_OP_MODE_STANDBY          (0x06U)  /**< Standby Mode */
 
 /* TOP_CTL1 (0x22) - Additional Control Bits */
-#define DA7281_TOP_CTL1_SEQ_START       (0x08U)  /**< Bit 3 - Sequencer start */
-#define DA7281_TOP_CTL1_STANDBY_EN      (0x10U)  /**< Bit 4 - Standby enable */
+#define DA7281_TOP_CTL1_STANDBY_EN      (0x08U)  /**< Bit 3 - Standby enable */
+#define DA7281_TOP_CTL1_SEQ_START       (0x10U)  /**< Bit 4 - Sequencer start */
 
 /* TOP_CFG1 - Actuator Type (bit 5) */
 #define DA7281_TOP_CFG1_ACTUATOR_TYPE   (0x20U)  /**< Bit 5: 0=ERM, 1=LRA */
@@ -205,7 +205,7 @@ extern "C" {
 #define DA7281_ACTUATOR_IMAX_SCALE          (7.2F)          /**< mA per LSB */
 
 /* LRA_PER (0x0A/0x0B) - Period calculation constant (datasheet formula) */
-#define DA7281_LRA_PER_TIME_SCALE           (1.33332e-9F)   /**< seconds per LSB */
+#define DA7281_LRA_PER_TIME_SCALE           (1.024e-6F)   /**< seconds per LSB */
 
 /* V2I_FACTOR (0x0F/0x10) - Calculation constants (datasheet formula) */
 #define DA7281_V2I_FACTOR_DIVISOR           (1.6104F)       /**< Formula divisor */

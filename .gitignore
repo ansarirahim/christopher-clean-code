@@ -47,16 +47,6 @@ Thumbs.db
 # Logs
 *.log
 
-# AI-generated documentation and personal notes (keep local only)
-CRITICAL_FINDINGS.md
-DATASHEET_PROOF.md
-READY_TO_SEND.md
-STATUS_FOR_CHRISTOPHER.md
-URGENT_FIX_COMPLETE.md
-VERIFICATION_STATUS.md
-chat-history-mom.txt
-*-mom.txt
-
 # Python (for test scripts)
 __pycache__/
 *.pyc

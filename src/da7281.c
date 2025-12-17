@@ -158,30 +158,19 @@ da7281_error_t da7281_deinit(da7281_device_t *device)
  * Register Calculations (per DA7281 Datasheet v3.1):
  *
  * 1. LRA_PER (Period Register):
- *    Formula: LRA_PER = 1 / (LRAFreq × 1334.32 × 10^-9)
- *    Example: For 170Hz LRA:
- *      LRA_PER = 1 / (170 × 1334.32 × 10^-9) = 4410
+ *    See datasheet Table 29 for formula
  *
  * 2. V2I_FACTOR (Voltage-to-Current Factor):
- *    Formula: V2I = (Z * (IMAX + 4)) / 1.6104
- *    Example: For Z=6.75 ohm, IMAX=350mA:
- *      IMAX = (350 - 28.6) / 7.2 = 44.6
- *      V2I = (6.75 * (44.6 + 4)) / 1.6104 = 204
+ *    See datasheet Table 34 for formula
  *
  * 3. ACTUATOR_NOMMAX (Nominal Maximum Voltage):
- *    Formula: NOMMAX = (V_rms * 1000) / 23.4
- *    Example: For 2.5V RMS:
- *      NOMMAX = (2.5 * 1000) / 23.4 = 107
+ *    See datasheet Table 31 for formula
  *
  * 4. ACTUATOR_ABSMAX (Absolute Maximum Voltage):
- *    Formula: ABSMAX = (V_peak * 1000) / 23.4
- *    Example: For 3.5V peak:
- *      ABSMAX = (3.5 * 1000) / 23.4 = 150
+ *    See datasheet Table 32 for formula
  *
  * 5. ACTUATOR_IMAX (Maximum Current):
- *    Formula: IMAX = (I_mA - 28.6) / 7.2
- *    Example: For 350mA:
- *      IMAX = (350 - 28.6) / 7.2 = 44.6 ~ 45
+ *    See datasheet Table 33 for formula
  *
  * @param device Pointer to initialized device handle
  * @param config Pointer to LRA configuration structure

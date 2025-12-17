@@ -158,10 +158,9 @@ da7281_error_t da7281_deinit(da7281_device_t *device)
  * Register Calculations (per DA7281 Datasheet v3.1):
  *
  * 1. LRA_PER (Period Register):
- *    Formula: LRA_PER = T / 1.024us, where T = 1 / f_resonant
+ *    Formula: LRA_PER = 1 / (LRAFreq × 1334.32 × 10^-9)
  *    Example: For 170Hz LRA:
- *      T = 1/170 = 0.00588s = 5882us
- *      LRA_PER = 5882 / 1.024 = 5744
+ *      LRA_PER = 1 / (170 × 1334.32 × 10^-9) = 4410
  *
  * 2. V2I_FACTOR (Voltage-to-Current Factor):
  *    Formula: V2I = (Z * (IMAX + 4)) / 1.6104
@@ -209,7 +208,7 @@ da7281_error_t da7281_configure_lra(da7281_device_t *device,
 
     /* ===== 1. Configure LRA Period ===== */
     /* Calculate period in seconds, then convert to register value */
-    /* DA7281 Datasheet Section 9.4.5: LRA_PER = T / 1.024us */
+    /* DA7281 Datasheet Table 29: LRA_PER = T / (1334.32 × 10^-9) */
     float period_seconds = 1.0F / (float)config->resonant_freq_hz;
     float lra_per_float = period_seconds / DA7281_LRA_PER_TIME_SCALE;
 

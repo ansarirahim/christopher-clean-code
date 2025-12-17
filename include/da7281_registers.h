@@ -205,7 +205,7 @@ extern "C" {
 #define DA7281_ACTUATOR_IMAX_SCALE          (7.2F)          /**< mA per LSB */
 
 /* LRA_PER (0x0A/0x0B) - Period calculation constant (datasheet formula) */
-#define DA7281_LRA_PER_TIME_SCALE           (1.024e-6F)   /**< seconds per LSB */
+#define DA7281_LRA_PER_TIME_SCALE           (1.33432e-6F)   /**< seconds per LSB */
 
 /* V2I_FACTOR (0x0F/0x10) - Calculation constants (datasheet formula) */
 #define DA7281_V2I_FACTOR_DIVISOR           (1.6104F)       /**< Formula divisor */
